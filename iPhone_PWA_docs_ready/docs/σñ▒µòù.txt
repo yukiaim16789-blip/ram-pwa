@@ -1,0 +1,3245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>配信待機中画面 - モモンガレム</title>
+  <style id="dynamic-style">
+    /* 動的なCSS用スタイルタグ */
+  </style>
+  <style>
+    :root {
+      --bg-color: #0b0d19;
+      --text-color: #00f3ff;
+      --sub-color: #ff0055;
+      --font-family: 'Segoe UI', 'メイリオ', Meiryo, sans-serif;
+    }
+
+    body.theme-cyber {
+      --bg-color: #0b0d19;
+      --text-color: #00f3ff;
+      --sub-color: #ff0055;
+    }
+
+    body.theme-minimal {
+      --bg-color: #1a1a1a;
+      --text-color: #ffffff;
+      --sub-color: #888888;
+    }
+
+    body.theme-neon {
+      --bg-color: #050014;
+      --text-color: #39ff14;
+      --sub-color: #bc13fe;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-family);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      transition: background-color 0.5s ease;
+      position: relative;
+    }
+
+    /* 🎬 フルスクリーン背景メディア（動画・画像）レイヤー */
+    .video-display-area {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      display: none;
+      background: #000;
+      pointer-events: none;
+    }
+
+    /* 📺 右下半透明（PIP風）レイヤー表示スタイル */
+    .video-display-area.pip-mode {
+      top: auto;
+      left: auto;
+      bottom: 20px;
+      right: 20px;
+      width: 320px;
+      height: 180px;
+      border-radius: 12px;
+      overflow: hidden;
+      opacity: 0.5;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+      z-index: 90;
+      border: 1px solid var(--text-color);
+    }
+
+    .video-display-area video,
+    .video-display-area iframe,
+    .video-display-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: none;
+    }
+
+    /* 音声有効化バナー */
+    .audio-init-banner {
+      position: fixed;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--sub-color);
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      z-index: 200;
+      box-shadow: 0 0 15px var(--sub-color);
+      animation: pulse 1.5s infinite;
+    }
+
+    .app-layout {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+      z-index: 10;
+      max-width: 1200px;
+      padding: 20px;
+    }
+
+    .content-area { text-align: left; }
+
+    .wave-container {
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-end;
+      gap: 8px;
+      height: 40px;
+      margin-bottom: 20px;
+    }
+
+    .wave-bar {
+      width: 8px;
+      height: 15px;
+      background-color: var(--text-color);
+      border-radius: 5px;
+      animation: wave 1.2s infinite ease-in-out;
+      box-shadow: 0 0 10px var(--text-color);
+    }
+
+    .wave-bar:nth-child(1) { animation-delay: 0.0s; }
+    .wave-bar:nth-child(2) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.4s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.0s; }
+
+    @keyframes wave {
+      0%, 100% { height: 12px; opacity: 0.4; }
+      50% { height: 40px; opacity: 1; }
+    }
+
+    .status-text {
+      font-size: 3.8rem;
+      font-weight: bold;
+      letter-spacing: 4px;
+      line-height: 1.2;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px var(--text-color);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.9; transform: scale(0.99); }
+    }
+
+    .sub-text {
+      font-size: 1.3rem;
+      color: var(--sub-color);
+      letter-spacing: 1px;
+      margin-bottom: 30px;
+      text-shadow: 0 0 10px var(--sub-color);
+    }
+
+    .info-box { display: flex; gap: 20px; }
+
+    .info-item {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      min-width: 180px;
+    }
+
+    .info-label {
+      font-size: 0.75rem;
+      color: var(--sub-color);
+      display: block;
+      margin-bottom: 4px;
+      letter-spacing: 1.5px;
+      font-weight: bold;
+    }
+
+    .info-value {
+      font-size: 1.6rem;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 🎤 AI音声応答＆質問提案ボックス */
+    .ai-qa-box {
+      margin-top: 25px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid var(--text-color);
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      max-width: 480px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .ai-qa-box.is-active {
+      display: flex;
+    }
+
+    .ai-speech-status {
+      font-size: 0.8rem;
+      color: var(--sub-color);
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-response-text {
+      font-size: 1.05rem;
+      color: #fff;
+      line-height: 1.4;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid var(--text-color);
+    }
+
+    .ai-suggestions-title {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .ai-suggestions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ai-suggestion-item {
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .ai-suggestion-item:hover {
+      background: var(--text-color);
+      color: #000;
+      font-weight: bold;
+      box-shadow: 0 0 10px var(--text-color);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .char-area {
+      position: relative;
+      width: 480px;
+      height: 480px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .char-bg-ring {
+      position: absolute;
+      width: 440px;
+      height: 440px;
+      border: 2px dashed var(--text-color);
+      border-radius: 50%;
+      opacity: 0.15;
+      animation: rotate 25s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* 🏙️ 連動動作用ラッパーコンテナ */
+    .bg-momonga-group {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      height: 470px;
+      z-index: 2;
+      cursor: grab;
+      user-select: none;
+    }
+    .bg-momonga-group:active { cursor: grabbing; }
+
+    .building-bg-canvas {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      max-height: 220px;
+      object-fit: contain;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .momonga-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      animation: momongaFloat 4s infinite ease-in-out;
+      transform-origin: center bottom;
+      z-index: 3;
+    }
+
+    @keyframes momongaFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(0.5deg); }
+    }
+
+    .momonga-container.no-anim,
+    .momonga-container.no-anim * {
+      animation: none !important;
+    }
+
+    .draggable-part, .fixed-part {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+      transform-origin: center center;
+    }
+
+    .draggable-part { cursor: grab; }
+    .draggable-part:active { cursor: grabbing; }
+
+    /* 全体ロック時または個別パーツロック時のスタイル */
+    .momonga-container.is-locked .draggable-part,
+    .draggable-part.part-is-locked {
+      cursor: default !important;
+      pointer-events: none !important;
+    }
+
+    .draggable-part.is-selected {
+      outline: 2px dashed var(--text-color);
+      outline-offset: 2px;
+    }
+
+    /* アニメーション関連 */
+    .anim-head-group {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      transform-origin: 50% 60%;
+      animation: headTilt 6s infinite ease-in-out;
+    }
+
+    @keyframes headTilt {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-3deg); }
+      50% { transform: rotate(0deg); }
+      75% { transform: rotate(3deg); }
+    }
+
+    #part-hair {
+      transform-origin: 50% 30%;
+      animation: hairSway 4.5s infinite ease-in-out;
+    }
+    @keyframes hairSway {
+      0%, 100% { transform: rotate(0deg); }
+      30% { transform: rotate(-2.5deg) translateY(-1px); }
+      70% { transform: rotate(2.5deg) translateY(0px); }
+    }
+
+    #part-headband {
+      transform-origin: 50% 25%;
+      animation: headbandSway 4.5s infinite ease-in-out;
+      animation-delay: 0.2s;
+    }
+    @keyframes headbandSway {
+      0%, 100% { transform: rotate(0deg); }
+      30% { transform: rotate(-1.5deg); }
+      70% { transform: rotate(1.5deg); }
+    }
+
+    #part-ear_l {
+      transform-origin: 35% 25%;
+      animation: earTwitchL 5s infinite ease-in-out;
+    }
+    @keyframes earTwitchL {
+      0%, 80%, 100% { transform: rotate(0deg); }
+      85% { transform: rotate(-6deg); }
+      90% { transform: rotate(3deg); }
+      95% { transform: rotate(-2deg); }
+    }
+
+    #part-ear_r {
+      transform-origin: 65% 25%;
+      animation: earTwitchR 5.5s infinite ease-in-out;
+    }
+    @keyframes earTwitchR {
+      0%, 40%, 100% { transform: rotate(0deg); }
+      45% { transform: rotate(6deg); }
+      50% { transform: rotate(-3deg); }
+      55% { transform: rotate(2deg); }
+    }
+
+    /* 🖐️ 右手（肩・付け根部分を中心に時計回り回転） */
+    #part-hand_r {
+      transform-origin: 45% 50%;
+    }
+
+    .is-waving-hand {
+      animation: handWaveRight var(--wave-speed, 0.8s) infinite ease-in-out;
+    }
+
+    @keyframes handWaveRight {
+      0%, 100% { transform: rotate(var(--wave-offset, 0deg)); }
+      50% { transform: rotate(calc(var(--wave-offset, 0deg) + var(--wave-angle, 25deg))); }
+    }
+
+    #part-hand_l {
+      animation: none !important;
+    }
+
+    #part-leg_c {
+      transform-origin: 45% 70%;
+      animation: legSwayR 3.5s infinite ease-in-out;
+    }
+    @keyframes legSwayR {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-6deg); }
+    }
+
+    #part-leg_l {
+      transform-origin: 55% 70%;
+      animation: legSwayL 3.8s infinite ease-in-out;
+    }
+    @keyframes legSwayL {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(8deg); }
+    }
+
+    #part-tail {
+      transform-origin: 25% 70%;
+      animation: tailSway 5s infinite ease-in-out;
+    }
+    @keyframes tailSway {
+      0%, 100% { transform: rotate(0deg) translateY(0px); }
+      50% { transform: rotate(-8deg) translateY(4px); }
+    }
+
+    #part-eye-close {
+      display: none;
+      pointer-events: none;
+    }
+
+    .momonga-container.bounce {
+      animation: momongaJump 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes momongaJump {
+      0% { transform: translateY(0) scale(1, 1); }
+      20% { transform: translateY(15px) scale(1.1, 0.9); }
+      50% { transform: translateY(-35px) scale(0.95, 1.05); }
+      75% { transform: translateY(5px) scale(1.02, 0.98); }
+      100% { transform: translateY(0) scale(1, 1); }
+    }
+
+    .bg-circle {
+      position: absolute;
+      border: 1.5px solid var(--text-color);
+      border-radius: 50%;
+      opacity: 0.08;
+      pointer-events: none;
+    }
+
+    .circle-1 { width: 600px; height: 600px; top: -10%; left: -10%; border-style: dashed; }
+    .circle-2 { width: 800px; height: 800px; bottom: -20%; right: -10%; animation: rotate 45s linear infinite reverse; }
+
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 15px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 100;
+      width: 340px;
+      max-height: 85vh;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .controls.is-active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .controls label {
+      font-size: 0.8rem;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+
+    .controls input, .controls select, .controls button, .controls textarea {
+      background: #222;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .controls button {
+      background: var(--sub-color);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 4px;
+      transition: opacity 0.2s;
+    }
+
+    .controls button:hover { opacity: 0.8; }
+
+    .sound-timer-info { font-size: 0.75rem; color: #aaa; }
+
+    .esc-hint {
+      position: fixed;
+      bottom: 15px;
+      right: 20px;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.5);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 6px 12px;
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 90;
+    }
+
+    /* ⚙️ 設定画面トグル用フローティングボタン */
+    .settings-toggle-btn {
+      position: fixed;
+      bottom: 15px;
+      right: 20px;
+      z-index: 200;
+      background: rgba(0, 0, 0, 0.75);
+      color: var(--text-color);
+      border: 1px solid var(--text-color);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .settings-toggle-btn:hover {
+      background: var(--text-color);
+      color: #000;
+      box-shadow: 0 0 15px var(--text-color);
+    }
+
+    #ytBgmContainer {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .part-adjust-box {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: opacity 0.2s;
+    }
+
+    .part-adjust-box.is-disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .num-row { display: flex; gap: 8px; }
+    .num-row label { flex: 1; }
+    .scale-header { display: flex; justify-content: space-between; align-items: center; }
+
+    .lock-status-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(255, 0, 85, 0.1);
+      border: 1px dashed var(--sub-color);
+      padding: 8px;
+      border-radius: 6px;
+    }
+    .lock-status-box.unlocked {
+      background: rgba(0, 243, 255, 0.1);
+      border-color: var(--text-color);
+    }
+
+    .part-lock-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-top: 4px;
+    }
+    .part-lock-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: #ddd;
+      cursor: pointer;
+    }
+    .part-lock-item input[type="checkbox"] {
+      cursor: pointer;
+    }
+
+    .sound-item-row {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .sound-item-row input[type="text"] { flex: 1; }
+
+    .custom-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .custom-modal-overlay.is-active {
+      display: flex;
+    }
+
+    .custom-modal-content {
+      background: #151828;
+      border: 1px solid var(--text-color);
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+      padding: 24px;
+      border-radius: 12px;
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      color: #fff;
+    }
+
+    .custom-modal-content h4 {
+      font-size: 1rem;
+      color: var(--text-color);
+    }
+
+    .custom-modal-content input[type="password"] {
+      width: 100%;
+      padding: 8px 12px;
+      background: #0b0d19;
+      border: 1px solid #444;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .custom-modal-content input[type="password"]:focus {
+      outline: none;
+      border-color: var(--text-color);
+    }
+
+    .custom-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .custom-modal-actions button {
+      padding: 6px 16px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-cancel { background: #444; color: #ccc; }
+    .btn-submit { background: var(--text-color); color: #000; }
+
+    /* 🎰 パチンコ風抽選機能モーダル */
+    #pachinkoModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      z-index: 500;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      transition: background-image 0.5s ease;
+    }
+
+    .pachinko-reel-wrapper {
+      position: relative;
+      width: 450px;
+      height: 450px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .pachinko-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.8));
+    }
+
+    .pachinko-img.spinning {
+      animation: rotateClockwise 0.15s linear infinite;
+    }
+
+    @keyframes rotateClockwise {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.05); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    /* ⚡ 確変演出コンテナ・画像＆エフェクトアニメーション */
+    .kakuhen-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+    }
+
+    /* キャラクター（組み合わされたレムパーツ群）のコンテナ */
+    .kakuhen-char-wrapper {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 確変時のキャラ振り回しアニメーション */
+    .kakuhen-char-wrapper.swinging {
+      animation: kakuhenSwing 0.4s infinite ease-in-out alternate;
+      transform-origin: center center;
+    }
+
+    @keyframes kakuhenSwing {
+      0% {
+        transform: translate(-50%, -50%) rotate(-30deg) scale(0.9) translateY(-10px);
+      }
+      50% {
+        transform: translate(-50%, -50%) rotate(0deg) scale(1.1) translateY(10px);
+      }
+      100% {
+        transform: translate(-50%, -50%) rotate(30deg) scale(0.9) translateY(-10px);
+      }
+    }
+
+    /* キャラクター画像 */
+    .kakuhen-char-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.8));
+    }
+
+    /* キャラクターに持たせて振り回す指定画像 */
+    .kakuhen-iron-ball {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 250px;
+      height: 250px;
+      margin-top: -125px;
+      margin-left: -125px;
+      object-fit: contain;
+      animation: swingIronBall 0.6s infinite ease-in-out alternate;
+      transform-origin: top center;
+      filter: drop-shadow(0 0 25px #ff0055);
+      z-index: 12;
+    }
+
+    @keyframes swingIronBall {
+      0% { transform: rotate(-45deg) scale(0.9); }
+      100% { transform: rotate(45deg) scale(1.2); }
+    }
+
+    .kakuhen-effect-wrapper {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: effectPopIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      z-index: 15;
+    }
+
+    @keyframes effectPopIn {
+      0% { transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 0; }
+      100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .kakuhen-effect-img {
+      max-width: 600px;
+      max-height: 400px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 30px #ff0055);
+    }
+
+    .kakuhen-text-overlay {
+      position: absolute;
+      font-size: 5rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055, 0 0 40px #ff0055, 0 0 80px #ff0000;
+      letter-spacing: 12px;
+      animation: pulseText 0.8s infinite alternate;
+    }
+
+    @keyframes pulseText {
+      0% { transform: scale(0.95); text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055; }
+      100% { transform: scale(1.1); text-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055, 0 0 60px #ff0000; }
+    }
+
+    .pachinko-result-hint {
+      margin-top: 25px;
+      color: #ffffff;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-shadow: 0 0 10px #00f3ff, 0 0 20px #000;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px 30px;
+      border-radius: 30px;
+      border: 1px solid var(--text-color);
+      animation: pulse 1.5s infinite;
+      display: none;
+      z-index: 20;
+    }
+  </style>
+</head>
+<body class="theme-cyber">
+
+  <!-- 🔑 パスワード入力用カスタムモーダル -->
+  <div class="custom-modal-overlay" id="passwordModal">
+    <div class="custom-modal-content">
+      <h4>🔒 管理用パスワードを入力</h4>
+      <input type="password" id="passwordInput" placeholder="パスワード">
+      <div class="custom-modal-actions">
+        <button class="btn-cancel" id="passwordCancelBtn">キャンセル</button>
+        <button class="btn-submit" id="passwordSubmitBtn">解除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎰 パチンコ風抽選用フルスクリーンレイヤー -->
+  <div id="pachinkoModal">
+    <div class="pachinko-reel-wrapper" id="pachinkoReelWrapper">
+      <img id="pachinkoSymbol" class="pachinko-img" src="" alt="抽選図柄">
+      
+      <!-- ⚡ 確変用演出レイヤー（キャラパーツコンテナ・指定画像＆Effect演出） -->
+      <div id="kakuhenContainer" class="kakuhen-container">
+        <div id="kakuhenCharWrapper" class="kakuhen-char-wrapper">
+          <!-- JSで待機画面のパーツコンテナをクローン挿入 -->
+          <img id="kakuhenIronBall" class="kakuhen-iron-ball" src="Iron ball.png" alt="Iron ball">
+        </div>
+        <div class="kakuhen-effect-wrapper">
+          <img id="kakuhenEffectImg" class="kakuhen-effect-img" src="Effoct.png" alt="Effoct">
+          <div class="kakuhen-text-overlay">確変</div>
+        </div>
+      </div>
+    </div>
+    <div id="pachinkoCloseHint" class="pachinko-result-hint">画面をクリックして閉じる</div>
+  </div>
+
+  <!-- 🎬 フルスクリーン／右下半透明背景メディアプレイヤー -->
+  <div class="video-display-area" id="videoDisplayArea">
+    <video id="localVideoPlayer" loop muted playsinline></video>
+    <div id="ytVideoPlayer"></div>
+    <img id="localBgImagePlayer" src="" alt="背景画像" style="display:none;">
+  </div>
+
+  <!-- 初回クリック用バナー -->
+  <div class="audio-init-banner" id="audioInitBanner">🔊 ここをクリックして音声を有効化してください</div>
+
+  <div class="bg-circle circle-1"></div>
+  <div class="bg-circle circle-2"></div>
+
+  <div class="app-layout">
+    <div class="content-area">
+      <div class="wave-container">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+      
+      <div class="status-text" id="mainStatus">すぐ戻ります</div>
+      <div class="sub-text" id="subStatus">ただいま一時的に席を外しています</div>
+
+      <div class="info-box">
+        <div class="info-item">
+          <span class="info-label">現在時刻</span>
+          <span class="info-value" id="currentTime">00:00:00</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">経過時間</span>
+          <span class="info-value" id="elapsedTime">00:00:00</span>
+        </div>
+      </div>
+
+      <!-- 🎤 AI呼び出し＆質問応答用表示領域 -->
+      <div class="ai-qa-box" id="aiQaBox">
+        <div class="ai-speech-status" id="aiSpeechStatus">🎙️ マイク待機中... 名前を呼んで話しかけてください</div>
+        <div class="ai-response-text" id="aiResponseText">「ずんだもん」や「レム」と呼ぶと質問に答えますのだ！</div>
+        <div class="ai-suggestions-title">💡 おすすめの質問候補 (タップで質問できます):</div>
+        <div class="ai-suggestions-list" id="aiSuggestionsList">
+          <!-- 質問候補が動的に挿入されます -->
+        </div>
+      </div>
+    </div>
+
+    <div class="char-area">
+      <div class="char-bg-ring"></div>
+      
+      <!-- 🏙️ 背景＆モモンガレム連動グループ -->
+      <div class="bg-momonga-group" id="bgMomongaGroup">
+        <canvas class="building-bg-canvas" id="buildingBgCanvas"></canvas>
+
+        <div class="momonga-container is-locked" id="momongaContainer">
+          <img src="tail_2.png" id="part-tail" class="draggable-part" data-key="tail" title="尻尾" style="z-index: 1;">
+          
+          <div class="anim-head-group" style="z-index: 5;">
+            <img src="ear_l_2.png" id="part-ear_l" class="draggable-part" data-key="ear_l" title="左耳" style="z-index: 2;">
+            <img src="ear_r_2.png" id="part-ear_r" class="draggable-part" data-key="ear_r" title="右耳" style="z-index: 3;">
+            <img src="body_no_eye.png" id="part-body" class="draggable-part" data-key="body" title="体・顔" style="z-index: 5;">
+
+            <!-- 口パーツ -->
+            <img src="mouth_close.png" id="part-mouth-close" class="draggable-part" data-key="mouth" title="口(閉)" style="z-index: 15; display: none;">
+            <img src="mouth_open.png" id="part-mouth-open" class="draggable-part" data-key="mouth" title="口(開)" style="z-index: 15; display: block;">
+
+            <img src="hair_2.png" id="part-hair" class="draggable-part" data-key="hair" title="髪" style="z-index: 6;">
+            <img src="headband_2.png" id="part-headband" class="draggable-part" data-key="headband" title="ヘッドドレス" style="z-index: 7;">
+
+            <!-- 目パーツ (eye_open & eye_close) -->
+            <img src="eye_open.png" id="part-eye" class="draggable-part" data-key="eye" title="目" style="z-index: 20;">
+            <img src="eye_close.png" id="part-eye-close" class="draggable-part" data-key="eye" title="閉じ目" style="z-index: 21; display: none;">
+          </div>
+
+          <img src="hand_r_2.png" id="part-hand_r" class="draggable-part" data-key="hand_r" title="右手(何も持っていない手)" style="z-index: 8;">
+          <img src="hand_l_2.png" id="part-hand_l" class="draggable-part" data-key="hand_l" title="左手(焼き芋)" style="z-index: 9;">
+
+          <img src="leg_c.png" id="part-leg_c" class="draggable-part" data-key="leg_c" title="右足" style="z-index: 10;">
+          <img src="leg_l.png" id="part-leg_l" class="draggable-part" data-key="leg_l" title="左足" style="z-index: 10;">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ⚙️ 設定画面トグル用フローティングボタン -->
+  <button class="settings-toggle-btn" id="openSettingsBtn">⚙️ 設定画面 [Esc]</button>
+
+  <div class="controls" id="controlsPanel">
+    <h3 style="font-size:0.95rem; color:var(--text-color);">⚙️ 設定画面</h3>
+
+    <!-- 🎤 音声認識＆自動応答アシスタント設定 -->
+    <div style="background: rgba(0, 243, 255, 0.1); border: 1px solid var(--text-color); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;">
+      <h4 style="font-size:0.85rem; color:var(--text-color);">🎤 音声認識 Q&A アシスタント設定 (ずんだもん対応)</h4>
+      <div class="controls-row">
+        <span>音声認識・AI応答機能:</span>
+        <input type="checkbox" id="speechAssistantToggle" checked>
+      </div>
+      <label>
+        呼び出しキーフレーズ (カンマ区切り):
+        <input type="text" id="callKeywordsInput" value="ずんだもん,レム,モモンガ,モモンガレム">
+      </label>
+      <label>
+        応答後クーリングタイム (秒):
+        <input type="number" id="speechCooldownInput" value="5" min="0">
+      </label>
+      <label>
+        VOICEVOX スピーカーID (ずんだもん標準=3):
+        <input type="number" id="voicevoxSpeakerId" value="3" min="0">
+      </label>
+      <label>
+        カスタムQ&A設定 (JSON形式: [{"keywords":["単語1","単語2"],"response":"回答文","suggestions":["関連質問1","関連質問2"]}...]):
+        <textarea id="customKnowledgeInput" rows="5" style="width:100%; font-family:monospace; font-size:0.75rem; background:#111; color:#00f3ff;" placeholder='[{"keywords":["天気"],"response":"今日は良い天気なのだ！","suggestions":["明日の天気は？"]}]'></textarea>
+      </label>
+      <button id="saveCustomKnowledgeBtn" style="background: var(--text-color); color: #000;">💾 カスタムQ&Aを保存・反映</button>
+      <div class="sound-timer-info" id="speechRecognizeStatusInfo">音声認識状態: 準備中</div>
+    </div>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <!-- 🎰 パチンコ風抽選機能コントロール -->
+    <div style="background: rgba(255, 0, 128, 0.15); border: 1px solid #ff007f; padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;">
+      <h4 style="font-size:0.85rem; color:#ff77bc;">🎰 パチンコ風抽選機能</h4>
+      <div class="controls-row">
+        <span>抽選機能 ON/OFF:</span>
+        <input type="checkbox" id="pachinkoEnableToggle" checked>
+      </div>
+      <div class="controls-row">
+        <span>モード (ON:固定設定 / OFF:確率抽選):</span>
+        <input type="checkbox" id="pachinkoModeToggle">
+      </div>
+      <div class="controls-row" id="pachinkoOutcomeRow" style="display:none;">
+        <span>固定結果 (ON:おかえり / OFF:待機継続):</span>
+        <input type="checkbox" id="pachinkoOutcomeToggle" checked>
+      </div>
+      <label id="pachinkoRateRow">
+        当選確率 (1 / X):
+        <input type="number" id="pachinkoWinRate" value="319" min="1" placeholder="例: 319 (1/319)">
+      </label>
+      <label>
+        抽選用画像1 (回転・結果表示用):
+        <input type="text" id="pachinkoImg1Path" value="welcome home.png">
+      </label>
+      <label>
+        抽選用画像2 (大当り・Swing演出用):
+        <input type="text" id="pachinkoImg2Path" value="stand-by.png">
+      </label>
+      <label>
+        演出エフェクト画像ファイルパス:
+        <input type="text" id="pachinkoEffectImgPath" value="Effoct.png">
+      </label>
+      <label>
+        通常時演出背景画像:
+        <input type="text" id="pachinkoBgImgPath" value="background.png">
+      </label>
+      <label>
+        確変演出背景画像:
+        <input type="text" id="pachinkoProbBgImgPath" value="Probability Variation.png">
+      </label>
+      <label>
+        結果時BGMファイル名/パス:
+        <input type="text" id="pachinkoBgmPath" value="bgm.mp3" placeholder="例: bgm.mp3 / bgm.wav">
+      </label>
+      <div class="controls-row">
+        <span>⏱️ 定期自動抽選:</span>
+        <button id="pachinkoAutoToggle" style="margin:0; background:#ff0055;">OFF</button>
+      </div>
+      <label>
+        自動抽選の実行間隔 (分):
+        <input type="number" id="pachinkoAutoInterval" value="10" min="1">
+      </label>
+      <div class="sound-timer-info" id="nextPachinkoInfo">次回自動抽選まで: 停止中</div>
+      <button id="startPachinkoBtn" style="background: linear-gradient(135deg, #ff007f, #7928ca); font-weight:bold; margin-top:4px;">▶️ パチンコ風抽選スタート</button>
+    </div>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <div class="lock-status-box" id="lockStatusBox">
+      <div style="font-size: 0.8rem; font-weight: bold; color: #fff;" id="lockStatusText">🔒 パーツ調整機能：保護中</div>
+      <button id="unlockBtn" style="margin-top:0;">🔓 パスワードを入力して解除</button>
+    </div>
+    
+    <div class="controls-row">
+      <span>画面上の全パーツドラッグ固定:</span>
+      <input type="checkbox" id="lockPositionToggle" checked disabled>
+    </div>
+
+    <!-- 🧩 個別パーツのロック設定 -->
+    <div style="margin-top: 4px;">
+      <span style="font-size: 0.8rem; color: #fff; font-weight: bold;">🔒 個別パーツロック設定:</span>
+      <div class="part-lock-grid" id="partLockGrid">
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="body"> 体・顔</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="eye"> 目</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="mouth"> 口</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="hair"> 髪</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="headband"> ヘッドドレス</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="ear_l"> 左耳</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="ear_r"> 右耳</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="hand_r"> 右手</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="hand_l"> 左手</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="leg_c"> 右足</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="leg_l"> 左足</label>
+        <label class="part-lock-item"><input type="checkbox" class="part-lock-chk" data-key="tail"> 尻尾</label>
+      </div>
+    </div>
+
+    <div class="controls-row" style="margin-top: 6px;">
+      <span>✨ アニメーション動作:</span>
+      <input type="checkbox" id="animToggle" checked>
+    </div>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <!-- 👋 手を振る動作調整 -->
+    <h4 style="font-size:0.85rem; color:#fff;">👋 手を振る動作調整</h4>
+    <div class="controls-row">
+      <span>右手（何もない手）を振る:</span>
+      <input type="checkbox" id="handWaveToggle" checked>
+    </div>
+    <label style="margin-top:4px;">
+      <div class="scale-header">
+        <span>手を振る基準角度 (度):</span>
+        <span id="handWaveOffsetText" style="color:var(--text-color); font-weight:bold;">0°</span>
+      </div>
+      <input type="range" id="handWaveOffset" min="-180" max="180" step="1" value="0">
+    </label>
+    <label style="margin-top:4px;">
+      <div class="scale-header">
+        <span>手を振る振り幅 (度):</span>
+        <span id="handWaveAngleText" style="color:var(--text-color); font-weight:bold;">25°</span>
+      </div>
+      <input type="range" id="handWaveAngle" min="-180" max="180" step="1" value="25">
+    </label>
+    <label style="margin-top:4px;">
+      <div class="scale-header">
+        <span>手を振る待機時間 (秒):</span>
+        <span id="handWaveIntervalText" style="color:var(--text-color); font-weight:bold;">5.0s</span>
+      </div>
+      <input type="range" id="handWaveInterval" min="1.0" max="20.0" step="0.5" value="5.0">
+    </label>
+    <label style="margin-top:4px;">
+      <div class="scale-header">
+        <span>手を振る動作時間 (秒):</span>
+        <span id="handWaveDurationText" style="color:var(--text-color); font-weight:bold;">3.0s</span>
+      </div>
+      <input type="range" id="handWaveDuration" min="0.5" max="10.0" step="0.5" value="3.0">
+    </label>
+    <label style="margin-top:4px;">
+      <div class="scale-header">
+        <span>手を振る速度 (秒/往復):</span>
+        <span id="handWaveSpeedText" style="color:var(--text-color); font-weight:bold;">0.8s</span>
+      </div>
+      <input type="range" id="handWaveSpeed" min="0.3" max="2.0" step="0.1" value="0.8">
+    </label>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <!-- 👄 口パク・定期開閉調整 -->
+    <h4 style="font-size:0.85rem; color:#fff;">👄 口パク・定期開閉調整</h4>
+    <div class="controls-row">
+      <span>定期的に口を閉じる:</span>
+      <input type="checkbox" id="mouthAutoToggle" checked>
+    </div>
+    <label style="margin-top:4px;">
+      <div class="scale-header">
+        <span>口を開けている時間 (秒):</span>
+        <span id="mouthOpenTimeText" style="color:var(--text-color); font-weight:bold;">4.0s</span>
+      </div>
+      <input type="range" id="mouthOpenTime" min="0.5" max="15.0" step="0.5" value="4.0">
+    </label>
+    <label>
+      <div class="scale-header">
+        <span>口を閉じている時間 (秒):</span>
+        <span id="mouthCloseTimeText" style="color:var(--text-color); font-weight:bold;">1.0s</span>
+      </div>
+      <input type="range" id="mouthCloseTime" min="0.2" max="5.0" step="0.1" value="1.0">
+    </label>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <!-- 🎬 背景・演出用メディア設定 -->
+    <h4 style="font-size:0.85rem; color:#fff;">🎬 背景・演出用メディア設定</h4>
+    <label>
+      メディアタイプを選択:
+      <select id="videoTypeSelect">
+        <option value="none" selected>使用しない</option>
+        <option value="local">ローカル動画ファイル / URL</option>
+        <option value="youtube">YouTube 動画埋め込み</option>
+        <option value="image_local">ローカル画像ファイル</option>
+        <option value="image_url">画像URL</option>
+      </select>
+    </label>
+
+    <div id="localVideoControls" style="display:none; margin-top:4px;">
+      <label>
+        ローカル動画を選択:
+        <input type="file" id="videoFileInput" accept="video/*">
+      </label>
+      <label style="margin-top:4px;">
+        動画URLを入力:
+        <input type="text" id="videoUrlInput" placeholder="https://example.com/video.mp4">
+      </label>
+    </div>
+
+    <div id="ytVideoControls" style="display:none; margin-top:4px;">
+      <label>
+        YouTube動画 (URLまたはID):
+        <input type="text" id="ytVideoUrlInput" placeholder="https://www.youtube.com/watch?v=...">
+      </label>
+    </div>
+
+    <div id="localImageControls" style="display:none; margin-top:4px;">
+      <label>
+        背景画像ファイルを選択:
+        <input type="file" id="mediaImageFileInput" accept="image/*">
+      </label>
+    </div>
+
+    <div id="imageUrlControls" style="display:none; margin-top:4px;">
+      <label>
+        背景画像のURLを入力:
+        <input type="text" id="mediaImageUrlInput" placeholder="https://example.com/background.jpg">
+      </label>
+    </div>
+
+    <div class="controls-row" style="margin-top:6px;">
+      <span>右下に半透明小窓表示 (PIP):</span>
+      <input type="checkbox" id="videoPipToggle">
+    </div>
+
+    <div class="controls-row" style="margin-top:6px;" id="videoMuteRow">
+      <span>動画の音声を消音 (ミュート):</span>
+      <input type="checkbox" id="videoMuteToggle" checked>
+    </div>
+    <button id="videoToggleBtn" style="background:#555;">▶️ 背景メディア表示: OFF</button>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <h4 style="font-size:0.85rem; color:#fff;">🖼️ キャラクター背景オブジェクト設定</h4>
+    <label>
+      ローカル画像を選択:
+      <input type="file" id="bgFileInput" accept="image/*">
+    </label>
+    <label style="margin-top: 4px;">
+      画像URLを指定:
+      <input type="text" id="bgUrlInput" placeholder="https://example.com/image.png">
+    </label>
+    <div class="controls-row" style="margin-top:4px;">
+      <span>背景の緑色を自動透過（クロマキー）:</span>
+      <input type="checkbox" id="chromaKeyToggle" checked>
+    </div>
+    <button id="resetBgBtn" style="background:#555;">背景を初期化 (building.png)</button>
+
+    <!-- 📍 背景・キャラ全体の位置・大きさ調整 -->
+    <div style="background: rgba(255, 255, 255, 0.05); padding: 8px; border-radius: 6px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+      <h5 style="font-size:0.8rem; color:var(--text-color);">📍 背景＆キャラ全体の位置・サイズ調整</h5>
+      <div class="controls-row">
+        <span>ドラッグで移動:</span>
+        <span style="font-size:0.75rem; color:#aaa;">画面中央のオブジェクトを直接ドラッグ可能</span>
+      </div>
+      <label>
+        <div class="scale-header">
+          <span>全体スケール (%):</span>
+          <span id="groupScaleValText" style="color:var(--text-color); font-weight:bold;">100%</span>
+        </div>
+        <input type="range" id="groupScaleInput" min="20" max="200" value="100">
+      </label>
+      <button id="resetGroupPosBtn" style="background:#444;">位置・サイズをリセット</button>
+    </div>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <h4 style="font-size:0.85rem; color:#fff;">🔔 通知音設定</h4>
+    <button id="notifyToggleBtn">🔔 一定間隔通知音: OFF</button>
+    
+    <label style="margin-top: 4px;">
+      通知音ファイル名/パス:
+      <input type="text" id="notifySoundPath" value="notification.wav" placeholder="ファイル名を入力 (例: notify.wav)">
+    </label>
+
+    <div style="display:flex; gap:6px;">
+      <button id="testNotifyBtn" style="flex:1; background: #333;">🔔 通知音テスト再生</button>
+    </div>
+
+    <label style="margin-top: 6px;">
+      通知再生間隔 (分):
+      <input type="number" id="notifyInterval" value="5" min="1" style="width: 100%;">
+    </label>
+    <div class="sound-timer-info" id="nextNotifyInfo">次回通知まで: 停止中</div>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <h4 style="font-size:0.85rem; color:#fff;">👁️ まばたき調整</h4>
+    <label>
+      <div class="scale-header">
+        <span>まばたき間隔 (秒):</span>
+        <span id="blinkIntervalText" style="color:var(--text-color); font-weight:bold;">6.0s</span>
+      </div>
+      <input type="range" id="blinkInterval" min="1" max="15" step="0.5" value="6">
+    </label>
+    <label>
+      <div class="scale-header">
+        <span>目を閉じる長さ (秒):</span>
+        <span id="blinkDurationText" style="color:var(--text-color); font-weight:bold;">0.3s</span>
+      </div>
+      <input type="range" id="blinkDuration" min="0.1" max="2" step="0.05" value="0.3">
+    </label>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <h4 style="font-size:0.85rem; color:#fff;">💬 テキスト表示設定</h4>
+    <label>
+      メインメッセージを選択:
+      <select id="mainPresetSelect">
+        <option value="すぐ戻ります" data-voice="talk_01.wav" selected>すぐ戻ります</option>
+        <option value="ご飯かお風呂中です" data-voice="talk_02.wav">ご飯かお風呂中です</option>
+        <option value="AFK / 待機中">AFK / 待機中</option>
+        <option value="準備中...">準備中...</option>
+        <option value="custom">✏️ 自由入力</option>
+      </select>
+      <input type="text" id="mainInput" value="すぐ戻ります" style="margin-top:4px;">
+    </label>
+
+    <label>
+      サブメッセージを選択:
+      <select id="subPresetSelect">
+        <option value="ただいま一時的に席を外しています" selected>ただいま一時的に席を外しています</option>
+        <option value="少しの間お待ちください">少しの間お待ちください</option>
+        <option value="用事が済み次第戻ります！">用事が済み次第戻ります！</option>
+        <option value="custom">✏️ 自由入力</option>
+      </select>
+      <input type="text" id="subInput" value="ただいま一時的に席を外しています" style="margin-top:4px;">
+    </label>
+
+    <!-- 🗣️ テキスト入力定期読み上げ機能のコントロールを追加 -->
+    <div class="controls-row" style="margin-top:8px;">
+      <span>🗣️ 入力テキストの自動音声読み上げ:</span>
+      <input type="checkbox" id="autoSpeechTextToggle">
+    </div>
+    <label style="margin-top:4px;">
+      読み上げ再生間隔 (分):
+      <input type="number" id="autoSpeechTextInterval" value="3" min="1">
+    </label>
+    <div class="sound-timer-info" id="autoSpeechTextTimerInfo">定期読み上げ: 停止中</div>
+
+    <div style="margin-top: 6px; margin-bottom: 6px; font-size: 11px; color: #888888;">
+      ※音声合成には VOICEVOX (ずんだもん等) を使用しています
+    </div>
+
+    <label>
+      カラーテーマ:
+      <select id="themeSelect">
+        <option value="theme-cyber">サイバーブルー</option>
+        <option value="theme-minimal">モノクロシンプル</option>
+        <option value="theme-neon">ネオングリーン</option>
+      </select>
+    </label>
+    <button id="resetTimerBtn">経過タイマーをリセット</button>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <h4 style="font-size:0.85rem; color:#fff;">🗣️ ボイス・セリフ設定</h4>
+    <button id="soundToggleBtn">🔊 定期ボイス再生: OFF</button>
+    
+    <label style="margin-top:4px;">
+      再生順モード:
+      <select id="voicePlayMode">
+        <option value="single" selected>選択中のボイスのみ固定再生</option>
+        <option value="random">ランダムに再生</option>
+        <option value="sequence">順番に再生</option>
+      </select>
+    </label>
+
+    <label>
+      登録ボイス一覧（ファイル名/パス）:
+      <div id="voiceListContainer" style="display:flex; flex-direction:column; gap:4px; margin-top:4px;"></div>
+      <button id="addVoiceBtn" style="background:#444;">＋ ボイスを追加</button>
+    </label>
+
+    <div style="display:flex; gap:6px;">
+      <button id="testTalkBtn" style="flex:1; background: #333;">🗣️ 選択ボイスのテスト再生</button>
+    </div>
+
+    <label style="margin-top: 6px;">
+      再生間隔 (分):
+      <div style="display: flex; gap: 5px; align-items: center;">
+        <input type="number" id="minInterval" value="1" min="1" style="width: 60px;"> 分 〜 
+        <input type="number" id="maxInterval" value="3" min="1" style="width: 60px;"> 分
+      </div>
+    </label>
+    <label>
+      音量:
+      <input type="range" id="volumeRange" min="0" max="1" step="0.1" value="0.5">
+    </label>
+    <div class="sound-timer-info" id="nextSoundInfo">次回再生まで: 停止中</div>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <h4 style="font-size:0.85rem; color:#fff;">🎵 独立BGM設定 (YouTube)</h4>
+    <label>
+      YouTube BGM (URLまたは動画ID):
+      <input type="text" id="ytUrlInput" placeholder="https://www.youtube.com/watch?v=..." value="https://www.youtube.com/watch?v=jfKfPfyJRdk">
+    </label>
+    <button id="bgmToggleBtn">🎵 BGM再生: OFF</button>
+
+    <hr style="border-color: #333; margin: 2px 0;">
+
+    <h4 style="font-size:0.85rem; color:#fff;">🧩 パーツ位置・サイズ・回転微調整</h4>
+    <div class="part-adjust-box is-disabled" id="partAdjustBox">
+      <label>
+        調整するパーツを選択:
+        <select id="partSelect">
+          <option value="eye">目 (eye_open)</option>
+          <option value="mouth">口 (mouth)</option>
+          <option value="body">体・顔 (body_no_eye)</option>
+          <option value="hair">髪 (hair_2)</option>
+          <option value="headband">ヘッドドレス (headband_2)</option>
+          <option value="ear_l">左耳 (ear_l_2)</option>
+          <option value="ear_r">右耳 (ear_r_2)</option>
+          <option value="tail">尻尾 (tail_2)</option>
+          <option value="leg_c">右足 (leg_c)</option>
+          <option value="leg_l">左足 (leg_l)</option>
+          <option value="hand_r">右手 (hand_r_2)</option>
+          <option value="hand_l">左手/焼き芋 (hand_l_2)</option>
+        </select>
+      </label>
+      <div class="num-row">
+        <label>
+          位置 X (px):
+          <input type="number" id="partX" value="0">
+        </label>
+        <label>
+          位置 Y (px):
+          <input type="number" id="partY" value="0">
+        </label>
+      </div>
+      <label>
+        <div class="scale-header">
+          <span>拡大率 Scale (%):</span>
+          <span id="scaleValText" style="color:var(--text-color); font-weight:bold;">100%</span>
+        </div>
+        <input type="range" id="partScale" min="5" max="200" value="100">
+      </label>
+      <label>
+        <div class="scale-header">
+          <span>回転角度 Angle (deg):</span>
+          <span id="rotateValText" style="color:var(--text-color); font-weight:bold;">0°</span>
+        </div>
+        <input type="range" id="partRotate" min="-180" max="180" value="0">
+      </label>
+      <button id="resetPartsBtn" style="background:#555;">パーツ配置を初期化</button>
+    </div>
+  </div>
+
+  <div id="ytBgmContainer">
+    <div id="ytBgmPlayer"></div>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <script>
+    const MANAGEMENT_PASSWORD = "Mg8#kP9$2x";
+    let isUnlocked = false;
+
+    // 音声自動再生の制限解除処理
+    const audioInitBanner = document.getElementById('audioInitBanner');
+    audioInitBanner.addEventListener('click', () => {
+      const dummyAudio = new Audio();
+      dummyAudio.play().then(() => {
+        audioInitBanner.style.display = 'none';
+      }).catch(() => {
+        audioInitBanner.style.display = 'none';
+      });
+      initSpeechRecognition();
+    });
+
+    /* ----------------------------------
+       ⚙️ 設定画面の開閉制御（ボタン＆Escキー連動）
+    ---------------------------------- */
+    const controlsPanel = document.getElementById('controlsPanel');
+    const openSettingsBtn = document.getElementById('openSettingsBtn');
+
+    function toggleSettingsPanel() {
+      controlsPanel.classList.toggle('is-active');
+    }
+
+    openSettingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSettingsPanel();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        toggleSettingsPanel();
+      }
+    });
+
+    /* ----------------------------------
+       ⏱️ 時計＆経過時間タイマー機能
+    ---------------------------------- */
+    const currentTimeEl = document.getElementById('currentTime');
+    const elapsedTimeEl = document.getElementById('elapsedTime');
+    const resetTimerBtn = document.getElementById('resetTimerBtn');
+    let startTime = Date.now();
+
+    function updateTimers() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      currentTimeEl.textContent = `${hours}:${minutes}:${seconds}`;
+
+      const diffSec = Math.floor((Date.now() - startTime) / 1000);
+      const eHours = String(Math.floor(diffSec / 3600)).padStart(2, '0');
+      const eMin = String(Math.floor((diffSec % 3600) / 60)).padStart(2, '0');
+      const eSec = String(diffSec % 60).padStart(2, '0');
+      elapsedTimeEl.textContent = `${eHours}:${eMin}:${eSec}`;
+    }
+    setInterval(updateTimers, 1000);
+    updateTimers();
+
+    resetTimerBtn.addEventListener('click', () => {
+      startTime = Date.now();
+      updateTimers();
+    });
+
+    /* ----------------------------------
+       💬 テキスト表示＆カラーテーマ設定
+    ---------------------------------- */
+    const mainStatus = document.getElementById('mainStatus');
+    const subStatus = document.getElementById('subStatus');
+    const mainPresetSelect = document.getElementById('mainPresetSelect');
+    const subPresetSelect = document.getElementById('subPresetSelect');
+    const mainInput = document.getElementById('mainInput');
+    const subInput = document.getElementById('subInput');
+    const themeSelect = document.getElementById('themeSelect');
+
+    mainPresetSelect.addEventListener('change', (e) => {
+      if (e.target.value !== 'custom') {
+        mainInput.value = e.target.value;
+        mainStatus.textContent = e.target.value;
+      }
+    });
+
+    subPresetSelect.addEventListener('change', (e) => {
+      if (e.target.value !== 'custom') {
+        subInput.value = e.target.value;
+        subStatus.textContent = e.target.value;
+      }
+    });
+
+    mainInput.addEventListener('input', (e) => {
+      mainStatus.textContent = e.target.value;
+    });
+
+    subInput.addEventListener('input', (e) => {
+      subStatus.textContent = e.target.value;
+    });
+
+    themeSelect.addEventListener('change', (e) => {
+      document.body.className = e.target.value;
+    });
+
+    /* ----------------------------------
+       👁️ まばたきアニメーション制御（eye_open / eye_close）
+    ---------------------------------- */
+    const blinkIntervalInput = document.getElementById('blinkInterval');
+    const blinkDurationInput = document.getElementById('blinkDuration');
+    const blinkIntervalText = document.getElementById('blinkIntervalText');
+    const blinkDurationText = document.getElementById('blinkDurationText');
+
+    const partEyeOpen = document.getElementById('part-eye');
+    const partEyeClose = document.getElementById('part-eye-close');
+
+    let blinkTimer = null;
+
+    function triggerBlink() {
+      if (!partEyeOpen || !partEyeClose) return;
+
+      partEyeOpen.style.display = 'none';
+      partEyeClose.style.display = 'block';
+
+      const durMs = (parseFloat(blinkDurationInput.value) || 0.3) * 1000;
+      setTimeout(() => {
+        partEyeOpen.style.display = 'block';
+        partEyeClose.style.display = 'none';
+      }, durMs);
+    }
+
+    function scheduleBlink() {
+      clearTimeout(blinkTimer);
+      const intervalMs = (parseFloat(blinkIntervalInput.value) || 6.0) * 1000;
+      blinkTimer = setTimeout(() => {
+        triggerBlink();
+        scheduleBlink();
+      }, intervalMs);
+    }
+
+    function updateBlinkSettings() {
+      const intVal = parseFloat(blinkIntervalInput.value) || 6.0;
+      const durVal = parseFloat(blinkDurationInput.value) || 0.3;
+      blinkIntervalText.textContent = `${intVal.toFixed(1)}s`;
+      blinkDurationText.textContent = `${durVal.toFixed(2)}s`;
+      scheduleBlink();
+    }
+
+    blinkIntervalInput.addEventListener('input', updateBlinkSettings);
+    blinkDurationInput.addEventListener('input', updateBlinkSettings);
+    scheduleBlink();
+
+    /* ----------------------------------
+       👋 手を振る動作の周期・速度・角度の制御
+    ---------------------------------- */
+    const handWaveToggle = document.getElementById('handWaveToggle');
+    const handWaveOffset = document.getElementById('handWaveOffset');
+    const handWaveAngle = document.getElementById('handWaveAngle');
+    const handWaveInterval = document.getElementById('handWaveInterval');
+    const handWaveDuration = document.getElementById('handWaveDuration');
+    const handWaveSpeed = document.getElementById('handWaveSpeed');
+
+    const handWaveOffsetText = document.getElementById('handWaveOffsetText');
+    const handWaveAngleText = document.getElementById('handWaveAngleText');
+    const handWaveIntervalText = document.getElementById('handWaveIntervalText');
+    const handWaveDurationText = document.getElementById('handWaveDurationText');
+    const handWaveSpeedText = document.getElementById('handWaveSpeedText');
+    const partHandR = document.getElementById('part-hand_r');
+
+    let handWaveTimer = null;
+
+    const defaultHandWaveConfig = {
+      enabled: true,
+      offset: 0,
+      angle: 25,
+      interval: 5.0,
+      duration: 3.0,
+      speed: 0.8
+    };
+
+    let handWaveConfig = JSON.parse(localStorage.getItem('momonga_hand_wave_config')) || defaultHandWaveConfig;
+
+    function saveHandWaveConfig() {
+      localStorage.setItem('momonga_hand_wave_config', JSON.stringify(handWaveConfig));
+    }
+
+    function loadHandWaveSettings() {
+      handWaveToggle.checked = handWaveConfig.enabled;
+      handWaveOffset.value = handWaveConfig.offset;
+      handWaveAngle.value = handWaveConfig.angle;
+      handWaveInterval.value = handWaveConfig.interval;
+      handWaveDuration.value = handWaveConfig.duration;
+      handWaveSpeed.value = handWaveConfig.speed;
+    }
+
+    function runHandWaveCycle() {
+      clearTimeout(handWaveTimer);
+
+      if (!handWaveToggle.checked) {
+        partHandR.classList.remove('is-waving-hand');
+        return;
+      }
+
+      const offsetVal = parseFloat(handWaveOffset.value) || 0;
+      const angleVal = parseFloat(handWaveAngle.value) || 25;
+      const intervalMs = (parseFloat(handWaveInterval.value) || 5.0) * 1000;
+      const durationMs = (parseFloat(handWaveDuration.value) || 3.0) * 1000;
+      const speedSec = parseFloat(handWaveSpeed.value) || 0.8;
+
+      partHandR.style.setProperty('--wave-offset', `${offsetVal}deg`);
+      partHandR.style.setProperty('--wave-angle', `${angleVal}deg`);
+      partHandR.style.setProperty('--wave-speed', `${speedSec}s`);
+      
+      partHandR.classList.add('is-waving-hand');
+
+      handWaveTimer = setTimeout(() => {
+        partHandR.classList.remove('is-waving-hand');
+
+        handWaveTimer = setTimeout(() => {
+          runHandWaveCycle();
+        }, intervalMs);
+      }, durationMs);
+    }
+
+    function updateHandWaveSettings() {
+      const offsetVal = parseFloat(handWaveOffset.value) || 0;
+      const angleVal = parseFloat(handWaveAngle.value) || 25;
+      const intervalVal = parseFloat(handWaveInterval.value) || 5.0;
+      const durationVal = parseFloat(handWaveDuration.value) || 3.0;
+      const speedVal = parseFloat(handWaveSpeed.value) || 0.8;
+
+      handWaveOffsetText.textContent = `${offsetVal}°`;
+      handWaveAngleText.textContent = `${angleVal}°`;
+      handWaveIntervalText.textContent = `${intervalVal.toFixed(1)}s`;
+      handWaveDurationText.textContent = `${durationVal.toFixed(1)}s`;
+      handWaveSpeedText.textContent = `${speedVal.toFixed(1)}s`;
+
+      handWaveConfig = {
+        enabled: handWaveToggle.checked,
+        offset: offsetVal,
+        angle: angleVal,
+        interval: intervalVal,
+        duration: durationVal,
+        speed: speedVal
+      };
+      saveHandWaveConfig();
+
+      runHandWaveCycle();
+    }
+
+    loadHandWaveSettings();
+    handWaveToggle.addEventListener('change', updateHandWaveSettings);
+    handWaveOffset.addEventListener('input', updateHandWaveSettings);
+    handWaveAngle.addEventListener('input', updateHandWaveSettings);
+    handWaveInterval.addEventListener('input', updateHandWaveSettings);
+    handWaveDuration.addEventListener('input', updateHandWaveSettings);
+    handWaveSpeed.addEventListener('input', updateHandWaveSettings);
+
+    updateHandWaveSettings();
+
+    /* ----------------------------------
+       👄 口を定期的に閉じる機能と時間の制御
+    ---------------------------------- */
+    const mouthAutoToggle = document.getElementById('mouthAutoToggle');
+    const mouthOpenTimeInput = document.getElementById('mouthOpenTime');
+    const mouthCloseTimeInput = document.getElementById('mouthCloseTime');
+    const mouthOpenTimeText = document.getElementById('mouthOpenTimeText');
+    const mouthCloseTimeText = document.getElementById('mouthCloseTimeText');
+
+    let autoMouthTimer = null;
+    let isTalkingActive = false;
+
+    function setMouthState(isOpen) {
+      const mouthOpen = document.getElementById('part-mouth-open');
+      const mouthClose = document.getElementById('part-mouth-close');
+      if (!mouthOpen || !mouthClose) return;
+
+      if (isOpen) {
+        mouthOpen.style.display = 'block';
+        mouthClose.style.display = 'none';
+      } else {
+        mouthOpen.style.display = 'none';
+        mouthClose.style.display = 'block';
+      }
+    }
+
+    function startTalking(durationMs) {
+      isTalkingActive = true;
+      let toggleState = false;
+      const talkMouthInterval = setInterval(() => {
+        toggleState = !toggleState;
+        setMouthState(toggleState);
+      }, 180);
+
+      setTimeout(() => {
+        clearInterval(talkMouthInterval);
+        isTalkingActive = false;
+        setMouthState(true);
+      }, durationMs);
+    }
+
+    function runAutoMouthCycle() {
+      clearTimeout(autoMouthTimer);
+
+      if (!mouthAutoToggle.checked || isTalkingActive) {
+        if (!isTalkingActive) setMouthState(true);
+        return;
+      }
+
+      const openMs = (parseFloat(mouthOpenTimeInput.value) || 4.0) * 1000;
+      const closeMs = (parseFloat(mouthCloseTimeInput.value) || 1.0) * 1000;
+
+      setMouthState(true);
+
+      autoMouthTimer = setTimeout(() => {
+        if (!mouthAutoToggle.checked || isTalkingActive) return;
+        setMouthState(false);
+
+        autoMouthTimer = setTimeout(() => {
+          runAutoMouthCycle();
+        }, closeMs);
+      }, openMs);
+    }
+
+    function updateMouthAutoSettings() {
+      const openVal = parseFloat(mouthOpenTimeInput.value) || 4.0;
+      const closeVal = parseFloat(mouthCloseTimeInput.value) || 1.0;
+
+      mouthOpenTimeText.textContent = `${openVal.toFixed(1)}s`;
+      mouthCloseTimeText.textContent = `${closeVal.toFixed(1)}s`;
+
+      runAutoMouthCycle();
+    }
+
+    mouthAutoToggle.addEventListener('change', updateMouthAutoSettings);
+    mouthOpenTimeInput.addEventListener('input', updateMouthAutoSettings);
+    mouthCloseTimeInput.addEventListener('input', updateMouthAutoSettings);
+
+    /* ----------------------------------
+       🗣️ VOICEVOX 連携 / 音声合成 & 読み上げ処理 (ずんだもん対応)
+    ---------------------------------- */
+    const VOICEVOX_URL = 'http://localhost:50021';
+    const voicevoxSpeakerIdInput = document.getElementById('voicevoxSpeakerId');
+
+    async function speakInputText(text) {
+      if (!text || text.trim() === '') return;
+
+      const speakerId = parseInt(voicevoxSpeakerIdInput.value) || 3;
+
+      try {
+        const queryUrl = `${VOICEVOX_URL}/audio_query?text=${encodeURIComponent(text)}&speaker=${speakerId}`;
+        const queryRes = await fetch(queryUrl, { method: 'POST' });
+        if (!queryRes.ok) throw new Error('audio_query 失敗');
+        const audioQuery = await queryRes.json();
+
+        const synthUrl = `${VOICEVOX_URL}/synthesis?speaker=${speakerId}`;
+        const synthRes = await fetch(synthUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(audioQuery)
+        });
+        if (!synthRes.ok) throw new Error('synthesis 失敗');
+
+        const audioBlob = await synthRes.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.volume = parseFloat(document.getElementById('volumeRange').value) || 0.5;
+
+        audio.addEventListener('loadedmetadata', () => {
+          const durationMs = Math.max(1000, Math.ceil(audio.duration * 1000));
+          startTalking(durationMs);
+          momongaContainer.classList.add('bounce');
+          setTimeout(() => momongaContainer.classList.remove('bounce'), 800);
+        });
+
+        audio.play().catch(err => console.warn('VOICEVOX音声再生がブロックされました:', err));
+
+      } catch (error) {
+        console.warn('VOICEVOX連携失敗のためWebSpeechAPIにフォールバックします:', error);
+        
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const uttr = new SpeechSynthesisUtterance(text);
+          uttr.lang = 'ja-JP';
+          uttr.volume = parseFloat(document.getElementById('volumeRange').value) || 0.5;
+          uttr.rate = 1.0;
+          uttr.pitch = 1.0;
+
+          uttr.onstart = () => {
+            const estimatedDuration = Math.max(1000, text.length * 200);
+            startTalking(estimatedDuration);
+            momongaContainer.classList.add('bounce');
+            setTimeout(() => momongaContainer.classList.remove('bounce'), 800);
+          };
+
+          window.speechSynthesis.speak(uttr);
+        }
+      }
+    }
+
+    /* 💬 入力テキストの定期自動読み上げ機能 */
+    const autoSpeechTextToggle = document.getElementById('autoSpeechTextToggle');
+    const autoSpeechTextInterval = document.getElementById('autoSpeechTextInterval');
+    const autoSpeechTextTimerInfo = document.getElementById('autoSpeechTextTimerInfo');
+    let autoSpeechTextTimer = null;
+
+    function scheduleAutoSpeechText() {
+      clearTimeout(autoSpeechTextTimer);
+      if (!autoSpeechTextToggle.checked) {
+        autoSpeechTextTimerInfo.textContent = '定期読み上げ: 停止中';
+        return;
+      }
+
+      const intervalMin = Math.max(1, parseInt(autoSpeechTextInterval.value) || 3);
+      const intervalMs = intervalMin * 60 * 1000;
+      autoSpeechTextTimerInfo.textContent = `定期読み上げ: ${intervalMin}分ごとに実行`;
+
+      autoSpeechTextTimer = setTimeout(() => {
+        const textToSpeak = `${mainInput.value}。${subInput.value}`;
+        speakInputText(textToSpeak);
+        scheduleAutoSpeechText();
+      }, intervalMs);
+    }
+
+    autoSpeechTextToggle.addEventListener('change', scheduleAutoSpeechText);
+    autoSpeechTextInterval.addEventListener('change', scheduleAutoSpeechText);
+
+    /* ----------------------------------
+       🎤 音声認識 & 質問応答・提案機能 (ずんだもん対応)
+    ---------------------------------- */
+    const speechAssistantToggle = document.getElementById('speechAssistantToggle');
+    const callKeywordsInput = document.getElementById('callKeywordsInput');
+    const speechCooldownInput = document.getElementById('speechCooldownInput');
+    const customKnowledgeInput = document.getElementById('customKnowledgeInput');
+    const saveCustomKnowledgeBtn = document.getElementById('saveCustomKnowledgeBtn');
+    const speechRecognizeStatusInfo = document.getElementById('speechRecognizeStatusInfo');
+    const aiQaBox = document.getElementById('aiQaBox');
+    const aiSpeechStatus = document.getElementById('aiSpeechStatus');
+    const aiResponseText = document.getElementById('aiResponseText');
+    const aiSuggestionsList = document.getElementById('aiSuggestionsList');
+
+    let recognition = null;
+    let isListening = false;
+    let isSpeechCooldown = false;
+
+    // ずんだもん口調の既定ナレッジベース
+    let defaultKnowledgeBase = [
+      {
+        keywords: ['どこ', '何し', 'いつ戻る', '離席', '主'],
+        response: '配信主はただいま席を外しているのだ！少し待っていれば戻ってくるのだ！',
+        suggestions: ['いつ帰ってきますか？', 'どんなゲームをやってるの？', '待機中の過ごし方は？']
+      },
+      {
+        keywords: ['ゲーム', '何をやっている', '配信内容'],
+        response: '今日はゲーム配信や雑談を予定しているのだ！ゆっくりしていってねなのだ！',
+        suggestions: ['主の好きな食べ物は？', '今日のおすすめ動画は？', '何時まで配信する？']
+      },
+      {
+        keywords: ['名前', 'だれ', '誰', 'レム', 'モモンガ', 'ずんだもん'],
+        response: 'ボクはずんだもん＆モモンガレムなのだ！お留守番を任されているのだ！',
+        suggestions: ['ずんだもんの特技は？', '何して遊ぶ？', '離席理由はなに？']
+      },
+      {
+        keywords: ['挨拶', 'こんにちは', 'こんばんは', 'はろー', 'ハロー', 'おは'],
+        response: 'こんにちはなのだ！話しかけてくれて嬉しいのだ！',
+        suggestions: ['主はどこに行ったの？', '自己紹介して！', 'おすすめの質問は？']
+      }
+    ];
+
+    let knowledgeBase = [...defaultKnowledgeBase];
+
+    // ローカルストレージからカスタムQ&Aを読み込み
+    const savedCustomKnowledge = localStorage.getItem('momonga_custom_knowledge');
+    if (savedCustomKnowledge) {
+      try {
+        customKnowledgeInput.value = savedCustomKnowledge;
+        const parsed = JSON.parse(savedCustomKnowledge);
+        if (Array.isArray(parsed)) {
+          knowledgeBase = [...parsed, ...defaultKnowledgeBase];
+        }
+      } catch (e) {
+        console.warn('カスタムQ&A読み込みエラー:', e);
+      }
+    } else {
+      customKnowledgeInput.value = JSON.stringify([
+        {
+          keywords: ["好きな食べ物", "食べ物"],
+          response: "ずんだ餅が大好きなのだ！",
+          suggestions: ["他には？", "配信主の好きな物は？"]
+        }
+      ], null, 2);
+    }
+
+    saveCustomKnowledgeBtn.addEventListener('click', () => {
+      try {
+        const val = customKnowledgeInput.value.trim();
+        if (val) {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed)) {
+            localStorage.setItem('momonga_custom_knowledge', val);
+            knowledgeBase = [...parsed, ...defaultKnowledgeBase];
+            alert('カスタムQ&A設定を保存・反映しました！');
+          } else {
+            alert('JSONは配列形式 [...] で入力してください。');
+          }
+        } else {
+          localStorage.removeItem('momonga_custom_knowledge');
+          knowledgeBase = [...defaultKnowledgeBase];
+          alert('カスタムQ&Aをリセットしました。');
+        }
+      } catch (e) {
+        alert('JSONの形式が正しくありません: ' + e.message);
+      }
+    });
+
+    const defaultFallback = {
+      response: '呼んでくれてありがとうなのだ！ボクに何か質問はあるのだ？',
+      suggestions: ['主はどこへ行きましたか？', 'どんな配信をしていますか？', 'ずんだもんって誰？']
+    };
+
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        speechRecognizeStatusInfo.textContent = '音声認識状態: 未対応ブラウザです';
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ja-JP';
+      recognition.continuous = true;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isListening = true;
+        speechRecognizeStatusInfo.textContent = '音声認識状態: 常時マイク待機中...';
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        if (speechAssistantToggle.checked) {
+          try { recognition.start(); } catch(e) {}
+        } else {
+          speechRecognizeStatusInfo.textContent = '音声認識状態: 停止中';
+        }
+      };
+
+      recognition.onerror = (e) => {
+        console.warn('音声認識エラー:', e);
+      };
+
+      recognition.onresult = (e) => {
+        if (!speechAssistantToggle.checked || isSpeechCooldown) return;
+        const lastIndex = e.results.length - 1;
+        const text = e.results[lastIndex][0].transcript.trim();
+        console.log('認識テキスト:', text);
+
+        handleSpeechQuery(text);
+      };
+
+      if (speechAssistantToggle.checked) {
+        try { recognition.start(); } catch(e) {}
+      }
+    }
+
+    function handleSpeechQuery(inputText) {
+      if (isSpeechCooldown) return;
+
+      const callKeywords = callKeywordsInput.value.split(',').map(k => k.trim()).filter(k => k);
+      const isCalled = callKeywords.some(kw => inputText.includes(kw));
+
+      if (isCalled || aiQaBox.classList.contains('is-active')) {
+        aiQaBox.classList.add('is-active');
+        aiSpeechStatus.textContent = `🎙️ 認識: 「${inputText}」`;
+
+        let matched = knowledgeBase.find(item => 
+          item.keywords && item.keywords.some(kw => inputText.includes(kw))
+        );
+
+        if (!matched) {
+          matched = defaultFallback;
+        }
+
+        aiResponseText.textContent = matched.response;
+        renderSuggestions(matched.suggestions || []);
+        speakInputText(matched.response);
+
+        const cooldownSec = Math.max(0, parseInt(speechCooldownInput.value) || 0);
+        if (cooldownSec > 0) {
+          isSpeechCooldown = true;
+          speechRecognizeStatusInfo.textContent = `音声認識状態: 応答クールダウン中 (${cooldownSec}秒)`;
+          setTimeout(() => {
+            isSpeechCooldown = false;
+            if (speechAssistantToggle.checked) {
+              speechRecognizeStatusInfo.textContent = '音声認識状態: 常時マイク待機中...';
+            }
+          }, cooldownSec * 1000);
+        }
+      }
+    }
+
+    function renderSuggestions(suggestions) {
+      aiSuggestionsList.innerHTML = '';
+      suggestions.forEach(qText => {
+        const item = document.createElement('div');
+        item.className = 'ai-suggestion-item';
+        item.textContent = `▶ ${qText}`;
+        item.addEventListener('click', () => {
+          handleSpeechQuery(qText);
+        });
+        aiSuggestionsList.appendChild(item);
+      });
+    }
+
+    speechAssistantToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        if (recognition) {
+          try { recognition.start(); } catch(e) {}
+        } else {
+          initSpeechRecognition();
+        }
+      } else {
+        if (recognition) {
+          recognition.stop();
+        }
+        speechRecognizeStatusInfo.textContent = '音声認識状態: 停止中';
+      }
+    });
+
+    /* ----------------------------------
+       🎰 パチンコ風抽選機能ロジック (画像切替対応)
+    ---------------------------------- */
+    const pachinkoModal = document.getElementById('pachinkoModal');
+    const pachinkoSymbol = document.getElementById('pachinkoSymbol');
+    const pachinkoCloseHint = document.getElementById('pachinkoCloseHint');
+    const pachinkoEnableToggle = document.getElementById('pachinkoEnableToggle');
+    const pachinkoModeToggle = document.getElementById('pachinkoModeToggle');
+    const pachinkoOutcomeToggle = document.getElementById('pachinkoOutcomeToggle');
+    const pachinkoWinRateInput = document.getElementById('pachinkoWinRate');
+    
+    const pachinkoImg1PathInput = document.getElementById('pachinkoImg1Path');
+    const pachinkoImg2PathInput = document.getElementById('pachinkoImg2Path');
+    
+    const pachinkoEffectImgPathInput = document.getElementById('pachinkoEffectImgPath');
+    const pachinkoBgImgPathInput = document.getElementById('pachinkoBgImgPath');
+    const pachinkoProbBgImgPathInput = document.getElementById('pachinkoProbBgImgPath');
+    const startPachinkoBtn = document.getElementById('startPachinkoBtn');
+    const pachinkoBgmPath = document.getElementById('pachinkoBgmPath');
+    const pachinkoAutoToggle = document.getElementById('pachinkoAutoToggle');
+    const pachinkoAutoInterval = document.getElementById('pachinkoAutoInterval');
+    const nextPachinkoInfo = document.getElementById('nextPachinkoInfo');
+    const pachinkoOutcomeRow = document.getElementById('pachinkoOutcomeRow');
+    const pachinkoRateRow = document.getElementById('pachinkoRateRow');
+
+    const kakuhenContainer = document.getElementById('kakuhenContainer');
+    const kakuhenCharWrapper = document.getElementById('kakuhenCharWrapper');
+    const kakuhenIronBall = document.getElementById('kakuhenIronBall');
+    const kakuhenEffectImg = document.getElementById('kakuhenEffectImg');
+
+    let resultBgmAudio = null;
+    let isPachinkoAutoEnabled = false;
+    let pachinkoAutoTimer = null;
+    let nextPachinkoTime = null;
+    let pachinkoCloseTimer = null;
+
+    pachinkoModeToggle.addEventListener('change', () => {
+      if (pachinkoModeToggle.checked) {
+        pachinkoOutcomeRow.style.display = 'flex';
+        pachinkoRateRow.style.display = 'none';
+      } else {
+        pachinkoOutcomeRow.style.display = 'none';
+        pachinkoRateRow.style.display = 'flex';
+      }
+    });
+
+    function playWinSE() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          
+          const startTime = ctx.currentTime + (idx * 0.08);
+          gain.gain.setValueAtTime(0.3, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+          
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.3);
+        });
+      } catch (e) {
+        console.warn('確定SE再生エラー:', e);
+      }
+    }
+
+    function playResultBGM() {
+      const bgmPath = pachinkoBgmPath.value.trim() || 'bgm.mp3';
+      if (resultBgmAudio) {
+        resultBgmAudio.pause();
+        resultBgmAudio.currentTime = 0;
+      }
+      resultBgmAudio = new Audio(bgmPath);
+      resultBgmAudio.volume = parseFloat(document.getElementById('volumeRange').value) || 0.5;
+
+      resultBgmAudio.play().catch(e => {
+        console.warn('結果BGM再生エラー:', e);
+      });
+    }
+
+    function stopResultBGM() {
+      if (resultBgmAudio) {
+        resultBgmAudio.pause();
+        resultBgmAudio.currentTime = 0;
+      }
+    }
+
+    function closePachinkoModal() {
+      pachinkoModal.style.display = 'none';
+      kakuhenContainer.style.display = 'none';
+      kakuhenCharWrapper.classList.remove('swinging');
+      
+      const clonedGroup = kakuhenCharWrapper.querySelector('.bg-momonga-group');
+      if (clonedGroup) {
+        clonedGroup.remove();
+      }
+
+      const origGroup = document.getElementById('bgMomongaGroup');
+      if (origGroup) {
+        origGroup.style.display = 'block';
+      }
+
+      pachinkoSymbol.style.display = 'block';
+      stopResultBGM();
+      startPachinkoBtn.disabled = false;
+      if (pachinkoCloseTimer) {
+        clearTimeout(pachinkoCloseTimer);
+        pachinkoCloseTimer = null;
+      }
+    }
+
+    function runPachinkoLottery() {
+      if (!pachinkoEnableToggle.checked) {
+        alert('パチンコ風抽選機能がOFFに設定されています。');
+        return;
+      }
+
+      const bgImg = pachinkoBgImgPathInput.value.trim() || 'background.png';
+      const probBgImg = pachinkoProbBgImgPathInput.value.trim() || 'Probability Variation.png';
+      
+      const img1 = pachinkoImg1PathInput.value.trim() || 'welcome home.png';
+      const img2 = pachinkoImg2PathInput.value.trim() || 'stand-by.png';
+      const effectImg = pachinkoEffectImgPathInput.value.trim() || 'Effoct.png';
+
+      pachinkoModal.style.backgroundImage = `url('${bgImg}')`;
+      kakuhenContainer.style.display = 'none';
+      kakuhenCharWrapper.classList.remove('swinging');
+      pachinkoSymbol.style.display = 'block';
+
+      startPachinkoBtn.disabled = true;
+      controlsPanel.classList.remove('is-active');
+      pachinkoModal.style.display = 'flex';
+      pachinkoCloseHint.style.display = 'none';
+      pachinkoSymbol.classList.add('spinning');
+
+      let isWin = false;
+      if (pachinkoModeToggle.checked) {
+        isWin = pachinkoOutcomeToggle.checked;
+      } else {
+        const rate = Math.max(1, parseInt(pachinkoWinRateInput.value) || 319);
+        const rand = Math.floor(Math.random() * rate);
+        isWin = (rand === 0);
+      }
+
+      let toggleStep = 0;
+      const spinInterval = setInterval(() => {
+        pachinkoSymbol.src = (toggleStep % 2 === 0) ? img1 : img2;
+        toggleStep++;
+      }, 70);
+
+      setTimeout(() => {
+        clearInterval(spinInterval);
+        pachinkoSymbol.classList.remove('spinning');
+
+        if (isWin) {
+          pachinkoModal.style.backgroundImage = `url('${probBgImg}')`;
+          pachinkoSymbol.style.display = 'none';
+
+          const origGroup = document.getElementById('bgMomongaGroup');
+          if (origGroup) {
+            const clonedGroup = origGroup.cloneNode(true);
+            clonedGroup.id = 'clonedMomongaGroup';
+            clonedGroup.style.position = 'relative';
+            clonedGroup.style.left = 'auto';
+            clonedGroup.style.bottom = 'auto';
+            clonedGroup.style.transform = 'scale(1)';
+            
+            const origCanvas = origGroup.querySelector('canvas');
+            const clonedCanvas = clonedGroup.querySelector('canvas');
+            if (origCanvas && clonedCanvas) {
+              clonedCanvas.width = origCanvas.width;
+              clonedCanvas.height = origCanvas.height;
+              const ctx = clonedCanvas.getContext('2d');
+              ctx.drawImage(origCanvas, 0, 0);
+            }
+
+            kakuhenCharWrapper.insertBefore(clonedGroup, kakuhenIronBall);
+            origGroup.style.display = 'none';
+          }
+
+          kakuhenIronBall.src = img2;
+          kakuhenEffectImg.src = effectImg;
+          kakuhenContainer.style.display = 'block';
+          kakuhenCharWrapper.classList.add('swinging');
+
+          playWinSE();
+        } else {
+          pachinkoSymbol.src = img1;
+        }
+
+        playResultBGM();
+        pachinkoCloseHint.style.display = 'block';
+
+        pachinkoCloseTimer = setTimeout(() => {
+          closePachinkoModal();
+        }, 4500);
+      }, 2500);
+    }
+
+    startPachinkoBtn.addEventListener('click', runPachinkoLottery);
+
+    pachinkoModal.addEventListener('click', () => {
+      if (!pachinkoSymbol.classList.contains('spinning')) {
+        closePachinkoModal();
+      }
+    });
+
+    function scheduleNextPachinko() {
+      if (!isPachinkoAutoEnabled) return;
+      const intervalMin = Math.max(1, parseInt(pachinkoAutoInterval.value) || 10);
+      const delayMs = intervalMin * 60 * 1000;
+
+      nextPachinkoTime = Date.now() + delayMs;
+
+      clearTimeout(pachinkoAutoTimer);
+      pachinkoAutoTimer = setTimeout(() => {
+        runPachinkoLottery();
+        scheduleNextPachinko();
+      }, delayMs);
+    }
+
+    pachinkoAutoToggle.addEventListener('click', () => {
+      isPachinkoAutoEnabled = !isPachinkoAutoEnabled;
+      if (isPachinkoAutoEnabled) {
+        pachinkoAutoToggle.textContent = 'ON';
+        pachinkoAutoToggle.style.background = '#00f3ff';
+        pachinkoAutoToggle.style.color = '#000';
+        scheduleNextPachinko();
+      } else {
+        pachinkoAutoToggle.textContent = 'OFF';
+        pachinkoAutoToggle.style.background = '#ff0055';
+        pachinkoAutoToggle.style.color = '#fff';
+        clearTimeout(pachinkoAutoTimer);
+        nextPachinkoTime = null;
+        nextPachinkoInfo.textContent = '次回自動抽選まで: 停止中';
+      }
+    });
+
+    /* ----------------------------------
+       🎬 独立メディアプレイヤー処理 (全画面＆右下PIP対応)
+    ---------------------------------- */
+    const videoTypeSelect = document.getElementById('videoTypeSelect');
+    const localVideoControls = document.getElementById('localVideoControls');
+    const ytVideoControls = document.getElementById('ytVideoControls');
+    const localImageControls = document.getElementById('localImageControls');
+    const imageUrlControls = document.getElementById('imageUrlControls');
+
+    const videoFileInput = document.getElementById('videoFileInput');
+    const videoUrlInput = document.getElementById('videoUrlInput');
+    const ytVideoUrlInput = document.getElementById('ytVideoUrlInput');
+    const mediaImageFileInput = document.getElementById('mediaImageFileInput');
+    const mediaImageUrlInput = document.getElementById('mediaImageUrlInput');
+
+    const videoPipToggle = document.getElementById('videoPipToggle');
+    const videoMuteRow = document.getElementById('videoMuteRow');
+    const videoMuteToggle = document.getElementById('videoMuteToggle');
+    const videoToggleBtn = document.getElementById('videoToggleBtn');
+    const videoDisplayArea = document.getElementById('videoDisplayArea');
+    const localVideoPlayer = document.getElementById('localVideoPlayer');
+    const localBgImagePlayer = document.getElementById('localBgImagePlayer');
+
+    let ytVideoPlayer = null;
+    let isVideoPlaying = false;
+
+    function extractVideoId(url) {
+      if (!url) return '';
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : url;
+    }
+
+    videoPipToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        videoDisplayArea.classList.add('pip-mode');
+      } else {
+        videoDisplayArea.classList.remove('pip-mode');
+      }
+    });
+
+    videoTypeSelect.addEventListener('change', (e) => {
+      const type = e.target.value;
+      localVideoControls.style.display = (type === 'local') ? 'block' : 'none';
+      ytVideoControls.style.display = (type === 'youtube') ? 'block' : 'none';
+      localImageControls.style.display = (type === 'image_local') ? 'block' : 'none';
+      imageUrlControls.style.display = (type === 'image_url') ? 'block' : 'none';
+
+      videoMuteRow.style.display = (type === 'local' || type === 'youtube') ? 'flex' : 'none';
+
+      stopAllVideos();
+    });
+
+    videoFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        localVideoPlayer.src = url;
+      }
+    });
+
+    videoUrlInput.addEventListener('change', (e) => {
+      if (e.target.value.trim()) {
+        localVideoPlayer.src = e.target.value.trim();
+      }
+    });
+
+    mediaImageFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        localBgImagePlayer.src = url;
+      }
+    });
+
+    mediaImageUrlInput.addEventListener('change', (e) => {
+      if (e.target.value.trim()) {
+        localBgImagePlayer.src = e.target.value.trim();
+      }
+    });
+
+    videoMuteToggle.addEventListener('change', (e) => {
+      const isMuted = e.target.checked;
+      localVideoPlayer.muted = isMuted;
+      if (ytVideoPlayer && ytVideoPlayer.mute) {
+        isMuted ? ytVideoPlayer.mute() : ytVideoPlayer.unMute();
+      }
+    });
+
+    function stopAllVideos() {
+      isVideoPlaying = false;
+      videoDisplayArea.style.display = 'none';
+      localVideoPlayer.pause();
+      localVideoPlayer.style.display = 'none';
+      localBgImagePlayer.style.display = 'none';
+      
+      const ytElem = document.getElementById('ytVideoPlayer');
+      if (ytElem) ytElem.style.display = 'none';
+      if (ytVideoPlayer && ytVideoPlayer.pauseVideo) {
+        ytVideoPlayer.pauseVideo();
+      }
+
+      videoToggleBtn.textContent = '▶️ 背景メディア表示: OFF';
+      videoToggleBtn.style.background = '#555';
+    }
+
+    videoToggleBtn.addEventListener('click', () => {
+      const type = videoTypeSelect.value;
+      if (type === 'none') {
+        alert('メディアタイプを選択してください。');
+        return;
+      }
+
+      isVideoPlaying = !isVideoPlaying;
+
+      if (isVideoPlaying) {
+        videoDisplayArea.style.display = 'block';
+
+        if (videoPipToggle.checked) {
+          videoDisplayArea.classList.add('pip-mode');
+        } else {
+          videoDisplayArea.classList.remove('pip-mode');
+        }
+
+        if (type === 'local') {
+          if (!localVideoPlayer.src) {
+            alert('動画ファイルまたはURLを指定してください。');
+            isVideoPlaying = false;
+            videoDisplayArea.style.display = 'none';
+            return;
+          }
+          localVideoPlayer.style.display = 'block';
+          localVideoPlayer.muted = videoMuteToggle.checked;
+          localVideoPlayer.play();
+        } else if (type === 'youtube') {
+          const ytElem = document.getElementById('ytVideoPlayer');
+          if (ytElem) ytElem.style.display = 'block';
+
+          const videoId = extractVideoId(ytVideoUrlInput.value);
+          if (!videoId) {
+            alert('YouTubeのURLまたはIDを入力してください。');
+            isVideoPlaying = false;
+            videoDisplayArea.style.display = 'none';
+            return;
+          }
+
+          if (ytVideoPlayer && ytVideoPlayer.loadVideoById) {
+            ytVideoPlayer.loadVideoById({ videoId: videoId });
+            if (videoMuteToggle.checked) ytVideoPlayer.mute();
+            else ytVideoPlayer.unMute();
+            ytVideoPlayer.playVideo();
+          }
+        } else if (type === 'image_local' || type === 'image_url') {
+          if (type === 'image_url' && mediaImageUrlInput.value.trim()) {
+            localBgImagePlayer.src = mediaImageUrlInput.value.trim();
+          }
+          if (!localBgImagePlayer.src) {
+            alert('画像ファイルまたはURLを指定してください。');
+            isVideoPlaying = false;
+            videoDisplayArea.style.display = 'none';
+            return;
+          }
+          localBgImagePlayer.style.display = 'block';
+        }
+
+        videoToggleBtn.textContent = '⏸️ メディア表示: ON';
+        videoToggleBtn.style.background = '#00f3ff';
+        videoToggleBtn.style.color = '#000';
+      } else {
+        stopAllVideos();
+      }
+    });
+
+    /* ----------------------------------
+       🖼️ キャラクター背景オブジェクト & 自動透過（クロマキー）処理
+    ---------------------------------- */
+    const buildingBgCanvas = document.getElementById('buildingBgCanvas');
+    const bgFileInput = document.getElementById('bgFileInput');
+    const bgUrlInput = document.getElementById('bgUrlInput');
+    const chromaKeyToggle = document.getElementById('chromaKeyToggle');
+    const resetBgBtn = document.getElementById('resetBgBtn');
+    const bgMomongaGroup = document.getElementById('bgMomongaGroup');
+    const groupScaleInput = document.getElementById('groupScaleInput');
+    const groupScaleValText = document.getElementById('groupScaleValText');
+    const resetGroupPosBtn = document.getElementById('resetGroupPosBtn');
+
+    let currentBgImageSrc = 'building.png';
+
+    function loadAndProcessBgImage(src) {
+      currentBgImageSrc = src;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        buildingBgCanvas.width = img.width;
+        buildingBgCanvas.height = img.height;
+        const ctx = buildingBgCanvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        if (chromaKeyToggle.checked) {
+          const imgData = ctx.getImageData(0, 0, img.width, img.height);
+          const data = imgData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            if (g > 80 && g > r * 1.3 && g > b * 1.3) {
+              data[i + 3] = 0;
+            }
+          }
+          ctx.putImageData(imgData, 0, 0);
+        }
+      };
+      img.src = src;
+    }
+
+    chromaKeyToggle.addEventListener('change', () => {
+      loadAndProcessBgImage(currentBgImageSrc);
+    });
+
+    bgFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          loadAndProcessBgImage(event.target.result);
+          localStorage.setItem('momonga_custom_bg', event.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    bgUrlInput.addEventListener('change', (e) => {
+      const url = e.target.value.trim();
+      if (url) {
+        loadAndProcessBgImage(url);
+        localStorage.setItem('momonga_custom_bg', url);
+      }
+    });
+
+    resetBgBtn.addEventListener('click', () => {
+      bgFileInput.value = '';
+      bgUrlInput.value = '';
+      localStorage.removeItem('momonga_custom_bg');
+      loadAndProcessBgImage('building.png');
+    });
+
+    const savedBg = localStorage.getItem('momonga_custom_bg');
+    if (savedBg) {
+      loadAndProcessBgImage(savedBg);
+      if (savedBg.startsWith('http')) {
+        bgUrlInput.value = savedBg;
+      }
+    } else {
+      loadAndProcessBgImage('building.png');
+    }
+
+    /* ----------------------------------
+       📍 背景＆モモンガレム連動移動・拡大調整機能
+    ---------------------------------- */
+    let groupPos = JSON.parse(localStorage.getItem('momonga_group_pos')) || { x: 0, y: 0, scale: 100 };
+
+    function applyGroupTransform() {
+      groupScaleValText.textContent = `${groupPos.scale}%`;
+      const scaleFactor = groupPos.scale / 100;
+      bgMomongaGroup.style.transform = `translateX(calc(-50% + ${groupPos.x}px)) translateY(${groupPos.y}px) scale(${scaleFactor})`;
+    }
+
+    groupScaleInput.addEventListener('input', (e) => {
+      groupPos.scale = parseInt(e.target.value) || 100;
+      applyGroupTransform();
+      localStorage.setItem('momonga_group_pos', JSON.stringify(groupPos));
+    });
+
+    resetGroupPosBtn.addEventListener('click', () => {
+      groupPos = { x: 0, y: 0, scale: 100 };
+      groupScaleInput.value = 100;
+      applyGroupTransform();
+      localStorage.setItem('momonga_group_pos', JSON.stringify(groupPos));
+    });
+
+    let isGroupDragging = false;
+    let groupStartX = 0, groupStartY = 0;
+    let groupInitX = 0, groupInitY = 0;
+
+    bgMomongaGroup.addEventListener('mousedown', (e) => {
+      if (e.target.classList.contains('draggable-part') && isUnlocked && !lockPositionToggle.checked) return;
+      
+      isGroupDragging = true;
+      groupStartX = e.clientX;
+      groupStartY = e.clientY;
+      groupInitX = groupPos.x;
+      groupInitY = groupPos.y;
+
+      window.addEventListener('mousemove', onGroupMouseMove);
+      window.addEventListener('mouseup', onGroupMouseUp);
+    });
+
+    function onGroupMouseMove(e) {
+      if (!isGroupDragging) return;
+      const dx = e.clientX - groupStartX;
+      const dy = e.clientY - groupStartY;
+      groupPos.x = groupInitX + dx;
+      groupPos.y = groupInitY + dy;
+      applyGroupTransform();
+    }
+
+    function onGroupMouseUp() {
+      if (isGroupDragging) {
+        isGroupDragging = false;
+        localStorage.setItem('momonga_group_pos', JSON.stringify(groupPos));
+      }
+      window.removeEventListener('mousemove', onGroupMouseMove);
+      window.removeEventListener('mouseup', onGroupMouseUp);
+    }
+
+    groupScaleInput.value = groupPos.scale;
+    applyGroupTransform();
+
+    /* ----------------------------------
+       🧩 パーツ調整・位置保存・ドラッグ＆個別ロック機能
+    ---------------------------------- */
+    const defaultPartConfigs = {
+      tail:     { x: 0, y: 0, scale: 100, rotate: 0 },
+      ear_l:    { x: 0, y: 0, scale: 100, rotate: 0 },
+      ear_r:    { x: 0, y: 0, scale: 100, rotate: 0 },
+      body:     { x: 0, y: 0, scale: 100, rotate: 0 },
+      mouth:    { x: 0, y: 0, scale: 100, rotate: 0 },
+      eye:      { x: 0, y: 0, scale: 100, rotate: 0 },
+      hair:     { x: 0, y: 0, scale: 100, rotate: 0 },
+      headband: { x: 0, y: 0, scale: 100, rotate: 0 },
+      leg_c:    { x: 0, y: 0, scale: 100, rotate: 0 },
+      leg_l:    { x: 0, y: 0, scale: 100, rotate: 0 },
+      hand_r:   { x: 0, y: 0, scale: 100, rotate: 0 },
+      hand_l:   { x: 0, y: 0, scale: 100, rotate: 0 }
+    };
+
+    let partConfigs = JSON.parse(localStorage.getItem('momonga_part_configs')) || JSON.parse(JSON.stringify(defaultPartConfigs));
+    let lockedParts = JSON.parse(localStorage.getItem('momonga_locked_parts')) || {};
+
+    const momongaContainer = document.getElementById('momongaContainer');
+    const lockStatusBox = document.getElementById('lockStatusBox');
+    const lockStatusText = document.getElementById('lockStatusText');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const lockPositionToggle = document.getElementById('lockPositionToggle');
+    const partAdjustBox = document.getElementById('partAdjustBox');
+    const partSelect = document.getElementById('partSelect');
+    const partXInput = document.getElementById('partX');
+    const partYInput = document.getElementById('partY');
+    const partScaleInput = document.getElementById('partScale');
+    const partRotateInput = document.getElementById('partRotate');
+    const scaleValText = document.getElementById('scaleValText');
+    const rotateValText = document.getElementById('rotateValText');
+    const resetPartsBtn = document.getElementById('resetPartsBtn');
+    const animToggle = document.getElementById('animToggle');
+
+    const passwordModal = document.getElementById('passwordModal');
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordCancelBtn = document.getElementById('passwordCancelBtn');
+    const passwordSubmitBtn = document.getElementById('passwordSubmitBtn');
+
+    function savePartConfigs() {
+      localStorage.setItem('momonga_part_configs', JSON.stringify(partConfigs));
+    }
+
+    function saveLockedParts() {
+      localStorage.setItem('momonga_locked_parts', JSON.stringify(lockedParts));
+    }
+
+    function applyPartTransforms() {
+      Object.keys(partConfigs).forEach(key => {
+        const conf = partConfigs[key];
+        let elements = [];
+        if (key === 'eye') {
+          elements = [document.getElementById('part-eye'), document.getElementById('part-eye-close')];
+        } else if (key === 'mouth') {
+          elements = [document.getElementById('part-mouth-open'), document.getElementById('part-mouth-close')];
+        } else {
+          const el = document.getElementById(`part-${key}`);
+          if (el) elements.push(el);
+        }
+
+        elements.forEach(el => {
+          if (el) {
+            const scaleFactor = conf.scale / 100;
+            el.style.transform = `translate(${conf.x}px, ${conf.y}px) scale(${scaleFactor}) rotate(${conf.rotate}deg)`;
+          }
+        });
+      });
+    }
+
+    function updatePartLockVisuals() {
+      document.querySelectorAll('.draggable-part').forEach(el => {
+        const key = el.getAttribute('data-key');
+        if (lockedParts[key]) {
+          el.classList.add('part-is-locked');
+        } else {
+          el.classList.remove('part-is-locked');
+        }
+      });
+
+      document.querySelectorAll('.part-lock-chk').forEach(chk => {
+        const key = chk.getAttribute('data-key');
+        chk.checked = !!lockedParts[key];
+      });
+    }
+
+    document.querySelectorAll('.part-lock-chk').forEach(chk => {
+      chk.addEventListener('change', (e) => {
+        const key = e.target.getAttribute('data-key');
+        lockedParts[key] = e.target.checked;
+        saveLockedParts();
+        updatePartLockVisuals();
+      });
+    });
+
+    function syncUIForSelectedPart(key) {
+      const conf = partConfigs[key] || { x: 0, y: 0, scale: 100, rotate: 0 };
+      partXInput.value = conf.x;
+      partYInput.value = conf.y;
+      partScaleInput.value = conf.scale;
+      partRotateInput.value = conf.rotate;
+      scaleValText.textContent = `${conf.scale}%`;
+      rotateValText.textContent = `${conf.rotate}°`;
+
+      document.querySelectorAll('.draggable-part').forEach(el => el.classList.remove('is-selected'));
+      if (key === 'eye') {
+        const e1 = document.getElementById('part-eye');
+        const e2 = document.getElementById('part-eye-close');
+        if (e1) e1.classList.add('is-selected');
+        if (e2) e2.classList.add('is-selected');
+      } else if (key === 'mouth') {
+        const m1 = document.getElementById('part-mouth-open');
+        const m2 = document.getElementById('part-mouth-close');
+        if (m1) m1.classList.add('is-selected');
+        if (m2) m2.classList.add('is-selected');
+      } else {
+        const el = document.getElementById(`part-${key}`);
+        if (el) el.classList.add('is-selected');
+      }
+    }
+
+    partSelect.addEventListener('change', (e) => {
+      syncUIForSelectedPart(e.target.value);
+    });
+
+    function updateSelectedPartFromInputs() {
+      const key = partSelect.value;
+      if (!partConfigs[key]) partConfigs[key] = { x: 0, y: 0, scale: 100, rotate: 0 };
+      partConfigs[key].x = parseInt(partXInput.value) || 0;
+      partConfigs[key].y = parseInt(partYInput.value) || 0;
+      partConfigs[key].scale = parseInt(partScaleInput.value) || 100;
+      partConfigs[key].rotate = parseInt(partRotateInput.value) || 0;
+
+      scaleValText.textContent = `${partConfigs[key].scale}%`;
+      rotateValText.textContent = `${partConfigs[key].rotate}°`;
+
+      applyPartTransforms();
+      savePartConfigs();
+    }
+
+    partXInput.addEventListener('input', updateSelectedPartFromInputs);
+    partYInput.addEventListener('input', updateSelectedPartFromInputs);
+    partScaleInput.addEventListener('input', updateSelectedPartFromInputs);
+    partRotateInput.addEventListener('input', updateSelectedPartFromInputs);
+
+    resetPartsBtn.addEventListener('click', () => {
+      partConfigs = JSON.parse(JSON.stringify(defaultPartConfigs));
+      applyPartTransforms();
+      savePartConfigs();
+      syncUIForSelectedPart(partSelect.value);
+    });
+
+    /* ドラッグ移動処理 */
+    let isPartDragging = false;
+    let dragTargetKey = null;
+    let dragStartX = 0, dragStartY = 0;
+    let initPartX = 0, initPartY = 0;
+
+    document.querySelectorAll('.draggable-part').forEach(el => {
+      el.addEventListener('mousedown', (e) => {
+        if (!isUnlocked || lockPositionToggle.checked) return;
+        const key = el.getAttribute('data-key');
+        if (lockedParts[key]) return;
+
+        e.stopPropagation();
+        isPartDragging = true;
+        dragTargetKey = key;
+        partSelect.value = key;
+        syncUIForSelectedPart(key);
+
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        initPartX = partConfigs[key].x;
+        initPartY = partConfigs[key].y;
+
+        window.addEventListener('mousemove', onPartMouseMove);
+        window.addEventListener('mouseup', onPartMouseUp);
+      });
+    });
+
+    function onPartMouseMove(e) {
+      if (!isPartDragging || !dragTargetKey) return;
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+      partConfigs[dragTargetKey].x = initPartX + dx;
+      partConfigs[dragTargetKey].y = initPartY + dy;
+
+      partXInput.value = partConfigs[dragTargetKey].x;
+      partYInput.value = partConfigs[dragTargetKey].y;
+
+      applyPartTransforms();
+    }
+
+    function onPartMouseUp() {
+      if (isPartDragging) {
+        isPartDragging = false;
+        savePartConfigs();
+      }
+      window.removeEventListener('mousemove', onPartMouseMove);
+      window.removeEventListener('mouseup', onPartMouseUp);
+    }
+
+    /* ロック解除＆パスワードモーダル制御 */
+    unlockBtn.addEventListener('click', () => {
+      if (isUnlocked) {
+        // 再ロック処理
+        isUnlocked = false;
+        momongaContainer.classList.add('is-locked');
+        lockPositionToggle.checked = true;
+        lockPositionToggle.disabled = true;
+        partAdjustBox.classList.add('is-disabled');
+        lockStatusBox.classList.remove('unlocked');
+        lockStatusText.textContent = '🔒 パーツ調整機能：保護中';
+        unlockBtn.textContent = '🔓 パスワードを入力して解除';
+        document.querySelectorAll('.draggable-part').forEach(el => el.classList.remove('is-selected'));
+      } else {
+        passwordInput.value = '';
+        passwordModal.classList.add('is-active');
+        passwordInput.focus();
+      }
+    });
+
+    passwordCancelBtn.addEventListener('click', () => {
+      passwordModal.classList.remove('is-active');
+    });
+
+    passwordSubmitBtn.addEventListener('click', () => {
+      if (passwordInput.value === MANAGEMENT_PASSWORD) {
+        isUnlocked = true;
+        passwordModal.classList.remove('is-active');
+        momongaContainer.classList.remove('is-locked');
+        lockPositionToggle.disabled = false;
+        lockPositionToggle.checked = false;
+        partAdjustBox.classList.remove('is-disabled');
+        lockStatusBox.classList.add('unlocked');
+        lockStatusText.textContent = '🔓 パーツ調整機能：解除済み';
+        unlockBtn.textContent = '🔒 再度ロックする';
+        syncUIForSelectedPart(partSelect.value);
+      } else {
+        alert('パスワードが違います！');
+        passwordInput.value = '';
+      }
+    });
+
+    passwordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') passwordSubmitBtn.click();
+    });
+
+    lockPositionToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        momongaContainer.classList.add('is-locked');
+      } else {
+        momongaContainer.classList.remove('is-locked');
+      }
+    });
+
+    animToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        momongaContainer.classList.remove('no-anim');
+      } else {
+        momongaContainer.classList.add('no-anim');
+      }
+    });
+
+    applyPartTransforms();
+    updatePartLockVisuals();
+    syncUIForSelectedPart('eye');
+
+    /* ----------------------------------
+       🔔 通知音機能
+    ---------------------------------- */
+    const notifyToggleBtn = document.getElementById('notifyToggleBtn');
+    const notifySoundPathInput = document.getElementById('notifySoundPath');
+    const testNotifyBtn = document.getElementById('testNotifyBtn');
+    const notifyIntervalInput = document.getElementById('notifyInterval');
+    const nextNotifyInfo = document.getElementById('nextNotifyInfo');
+
+    let isNotifyEnabled = false;
+    let notifyTimer = null;
+
+    function playNotifySound() {
+      const path = notifySoundPathInput.value.trim() || 'notification.wav';
+      const audio = new Audio(path);
+      audio.volume = parseFloat(document.getElementById('volumeRange').value) || 0.5;
+      audio.play().catch(err => console.warn('通知音再生エラー:', err));
+    }
+
+    testNotifyBtn.addEventListener('click', playNotifySound);
+
+    function scheduleNotify() {
+      clearTimeout(notifyTimer);
+      if (!isNotifyEnabled) {
+        nextNotifyInfo.textContent = '次回通知まで: 停止中';
+        return;
+      }
+
+      const intervalMin = Math.max(1, parseInt(notifyIntervalInput.value) || 5);
+      const intervalMs = intervalMin * 60 * 1000;
+      nextNotifyInfo.textContent = `次回通知: ${intervalMin}分後に実行`;
+
+      notifyTimer = setTimeout(() => {
+        playNotifySound();
+        scheduleNotify();
+      }, intervalMs);
+    }
+
+    notifyToggleBtn.addEventListener('click', () => {
+      isNotifyEnabled = !isNotifyEnabled;
+      if (isNotifyEnabled) {
+        notifyToggleBtn.textContent = '🔔 一定間隔通知音: ON';
+        notifyToggleBtn.style.background = '#00f3ff';
+        notifyToggleBtn.style.color = '#000';
+      } else {
+        notifyToggleBtn.textContent = '🔔 一定間隔通知音: OFF';
+        notifyToggleBtn.style.background = '#555';
+        notifyToggleBtn.style.color = '#fff';
+      }
+      scheduleNotify();
+    });
+
+    notifyIntervalInput.addEventListener('change', scheduleNotify);
+
+    /* ----------------------------------
+       🗣️ 定期ボイス再生機能
+    ---------------------------------- */
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const voicePlayMode = document.getElementById('voicePlayMode');
+    const voiceListContainer = document.getElementById('voiceListContainer');
+    const addVoiceBtn = document.getElementById('addVoiceBtn');
+    const testTalkBtn = document.getElementById('testTalkBtn');
+    const minIntervalInput = document.getElementById('minInterval');
+    const maxIntervalInput = document.getElementById('maxInterval');
+    const volumeRange = document.getElementById('volumeRange');
+    const nextSoundInfo = document.getElementById('nextSoundInfo');
+
+    let voiceList = JSON.parse(localStorage.getItem('momonga_voice_list')) || ['talk_01.wav', 'talk_02.wav'];
+    let isVoiceEnabled = false;
+    let voiceTimer = null;
+    let currentVoiceIndex = 0;
+
+    function saveVoiceList() {
+      localStorage.setItem('momonga_voice_list', JSON.stringify(voiceList));
+    }
+
+    function renderVoiceListUI() {
+      voiceListContainer.innerHTML = '';
+      voiceList.forEach((file, idx) => {
+        const row = document.createElement('div');
+        row.className = 'sound-item-row';
+
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'selectedVoiceRadio';
+        radio.value = idx;
+        radio.checked = (idx === currentVoiceIndex);
+        radio.addEventListener('change', () => {
+          currentVoiceIndex = idx;
+        });
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = file;
+        input.addEventListener('input', (e) => {
+          voiceList[idx] = e.target.value.trim();
+          saveVoiceList();
+        });
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '✕';
+        delBtn.style.background = '#ff0055';
+        delBtn.style.marginTop = '0';
+        delBtn.style.padding = '4px 8px';
+        delBtn.addEventListener('click', () => {
+          voiceList.splice(idx, 1);
+          if (currentVoiceIndex >= voiceList.length) currentVoiceIndex = Math.max(0, voiceList.length - 1);
+          saveVoiceList();
+          renderVoiceListUI();
+        });
+
+        row.appendChild(radio);
+        row.appendChild(input);
+        row.appendChild(delBtn);
+        voiceListContainer.appendChild(row);
+      });
+    }
+
+    addVoiceBtn.addEventListener('click', () => {
+      voiceList.push(`talk_0${voiceList.length + 1}.wav`);
+      saveVoiceList();
+      renderVoiceListUI();
+    });
+
+    renderVoiceListUI();
+
+    function playVoiceFile(filePath) {
+      if (!filePath) return;
+      const audio = new Audio(filePath);
+      audio.volume = parseFloat(volumeRange.value) || 0.5;
+
+      audio.addEventListener('loadedmetadata', () => {
+        const durationMs = Math.max(1000, Math.ceil(audio.duration * 1000));
+        startTalking(durationMs);
+        momongaContainer.classList.add('bounce');
+        setTimeout(() => momongaContainer.classList.remove('bounce'), 800);
+      });
+
+      audio.play().catch(err => console.warn('ボイス再生失敗:', err));
+    }
+
+    testTalkBtn.addEventListener('click', () => {
+      if (voiceList.length > 0 && voiceList[currentVoiceIndex]) {
+        playVoiceFile(voiceList[currentVoiceIndex]);
+      } else {
+        alert('ボイスが登録されていません。');
+      }
+    });
+
+    function scheduleVoice() {
+      clearTimeout(voiceTimer);
+      if (!isVoiceEnabled || voiceList.length === 0) {
+        nextSoundInfo.textContent = '次回再生まで: 停止中';
+        return;
+      }
+
+      const minMin = Math.max(1, parseInt(minIntervalInput.value) || 1);
+      const maxMin = Math.max(minMin, parseInt(maxIntervalInput.value) || 3);
+      const randMin = Math.floor(Math.random() * (maxMin - minMin + 1)) + minMin;
+      const delayMs = randMin * 60 * 1000;
+
+      nextSoundInfo.textContent = `次回再生: 約${randMin}分後`;
+
+      voiceTimer = setTimeout(() => {
+        const mode = voicePlayMode.value;
+        let fileToPlay = '';
+
+        if (mode === 'single') {
+          fileToPlay = voiceList[currentVoiceIndex] || voiceList[0];
+        } else if (mode === 'random') {
+          const rIdx = Math.floor(Math.random() * voiceList.length);
+          fileToPlay = voiceList[rIdx];
+        } else if (mode === 'sequence') {
+          fileToPlay = voiceList[currentVoiceIndex];
+          currentVoiceIndex = (currentVoiceIndex + 1) % voiceList.length;
+          renderVoiceListUI();
+        }
+
+        playVoiceFile(fileToPlay);
+        scheduleVoice();
+      }, delayMs);
+    }
+
+    soundToggleBtn.addEventListener('click', () => {
+      isVoiceEnabled = !isVoiceEnabled;
+      if (isVoiceEnabled) {
+        soundToggleBtn.textContent = '🔊 定期ボイス再生: ON';
+        soundToggleBtn.style.background = '#00f3ff';
+        soundToggleBtn.style.color = '#000';
+      } else {
+        soundToggleBtn.textContent = '🔊 定期ボイス再生: OFF';
+        soundToggleBtn.style.background = '#555';
+        soundToggleBtn.style.color = '#fff';
+      }
+      scheduleVoice();
+    });
+
+    minIntervalInput.addEventListener('change', scheduleVoice);
+    maxIntervalInput.addEventListener('change', scheduleVoice);
+
+    /* ----------------------------------
+       🎵 独立BGM機能 (YouTube IFrame API)
+    ---------------------------------- */
+    const ytUrlInput = document.getElementById('ytUrlInput');
+    const bgmToggleBtn = document.getElementById('bgmToggleBtn');
+
+    let ytBgmPlayer = null;
+    let isBgmPlaying = false;
+
+    window.onYouTubeIframeAPIReady = function() {
+      ytBgmPlayer = new YT.Player('ytBgmPlayer', {
+        height: '1',
+        width: '1',
+        videoId: extractVideoId(ytUrlInput.value) || 'jfKfPfyJRdk',
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          loop: 1,
+          playlist: extractVideoId(ytUrlInput.value) || 'jfKfPfyJRdk'
+        },
+        events: {
+          onReady: (e) => {
+            e.target.setVolume((parseFloat(volumeRange.value) || 0.5) * 100);
+          }
+        }
+      });
+
+      ytVideoPlayer = new YT.Player('ytVideoPlayer', {
+        height: '100%',
+        width: '100%',
+        videoId: '',
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          loop: 1,
+          mute: 1
+        }
+      });
+    };
+
+    bgmToggleBtn.addEventListener('click', () => {
+      isBgmPlaying = !isBgmPlaying;
+      if (isBgmPlaying) {
+        const vid = extractVideoId(ytUrlInput.value);
+        if (ytBgmPlayer && ytBgmPlayer.loadVideoById) {
+          ytBgmPlayer.loadVideoById({ videoId: vid });
+          ytBgmPlayer.setVolume((parseFloat(volumeRange.value) || 0.5) * 100);
+          ytBgmPlayer.playVideo();
+        }
+        bgmToggleBtn.textContent = '🎵 BGM再生: ON';
+        bgmToggleBtn.style.background = '#00f3ff';
+        bgmToggleBtn.style.color = '#000';
+      } else {
+        if (ytBgmPlayer && ytBgmPlayer.pauseVideo) {
+          ytBgmPlayer.pauseVideo();
+        }
+        bgmToggleBtn.textContent = '🎵 BGM再生: OFF';
+        bgmToggleBtn.style.background = '#555';
+        bgmToggleBtn.style.color = '#fff';
+      }
+    });
+
+    volumeRange.addEventListener('input', (e) => {
+      const vol = parseFloat(e.target.value) || 0.5;
+      if (ytBgmPlayer && ytBgmPlayer.setVolume) {
+        ytBgmPlayer.setVolume(vol * 100);
+      }
+    });
+
+  </script>
+</body>
+</html>
