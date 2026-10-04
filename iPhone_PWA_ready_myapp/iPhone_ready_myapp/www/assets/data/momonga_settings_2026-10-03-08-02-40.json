@@ -1,0 +1,815 @@
+{
+  "format": "momonga-settings",
+  "version": 1,
+  "exportedAt": "2026-10-03T08:02:40.933Z",
+  "settings": {
+    "momonga_custom_theme": {
+      "bg": "#0b0d19",
+      "text": "#00f3ff",
+      "sub": "#ff0055"
+    },
+    "momonga_voice_list_v2": [
+      "talk_01.wav",
+      "talk_02.wav"
+    ],
+    "momonga_part_configs_v4": {
+      "tail": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0
+      },
+      "ear_l": {
+        "x": 174,
+        "y": -226,
+        "scale": 80,
+        "rotate": 0
+      },
+      "ear_r": {
+        "x": 8,
+        "y": -220,
+        "scale": 80,
+        "rotate": 0
+      },
+      "body": {
+        "x": 39,
+        "y": -48,
+        "scale": 100,
+        "rotate": 0
+      },
+      "mouth": {
+        "x": 226,
+        "y": 124,
+        "scale": 11,
+        "rotate": 0
+      },
+      "eye": {
+        "x": 273,
+        "y": 65,
+        "scale": 13,
+        "rotate": 0
+      },
+      "hair": {
+        "x": 109,
+        "y": -120,
+        "scale": 72,
+        "rotate": 0
+      },
+      "headband": {
+        "x": 46,
+        "y": -197,
+        "scale": 100,
+        "rotate": 0
+      },
+      "leg_c": {
+        "x": 110,
+        "y": 136,
+        "scale": 90,
+        "rotate": 1
+      },
+      "leg_l": {
+        "x": 125,
+        "y": 228,
+        "scale": 43,
+        "rotate": 1
+      },
+      "hand_r": {
+        "x": 29,
+        "y": 10,
+        "scale": 90,
+        "rotate": 2
+      },
+      "hand_l": {
+        "x": 177,
+        "y": -9,
+        "scale": 85,
+        "rotate": 0
+      }
+    },
+    "momonga_system_feature_settings_v1": {
+      "cpu": true,
+      "memory": true,
+      "timeUptime": true,
+      "network": true,
+      "fps": true,
+      "monitor": true,
+      "clickReaction": true,
+      "randomReaction": true,
+      "preset": true,
+      "ramPop": true,
+      "ramAlways": false,
+      "ramSize": 350,
+      "ramRotation": -93,
+      "ramPosX": 100,
+      "ramPosY": 70,
+      "ramMin": 120,
+      "ramMax": 180,
+      "ramDuration": 1.8,
+      "ramDirTop": true,
+      "ramDirBottom": true,
+      "ramDirLeft": true,
+      "ramDirRight": true,
+      "ramPosTopX": 100,
+      "ramPosTopY": 15,
+      "ramPosBottomX": 100,
+      "ramPosBottomY": 85,
+      "ramPosLeftX": 100,
+      "ramPosLeftY": 50,
+      "ramPosRightX": 100,
+      "ramPosRightY": 50,
+      "gaze": false,
+      "gazeFollow": false,
+      "gazeDistance": 350,
+      "gazeStrength": 8,
+      "gazeStrengthNarrowedV2": true,
+      "gazeBrowX": 0,
+      "gazeBrowY": -9,
+      "gazeClickReaction": true,
+      "ramPosTop": 48,
+      "ramPosBottom": 67,
+      "ramPosLeft": 58,
+      "ramPosRight": 72
+    },
+    "momonga_idle_state_settings_v2": {
+      "enabled": true,
+      "fine": 60,
+      "half": 120,
+      "close": 180,
+      "dots": false,
+      "zzz": true,
+      "floating": true,
+      "dim": true
+    },
+    "momonga_custom_knowledge": [
+      {
+        "keywords": [
+          "好きな食べ物は？"
+        ],
+        "response": "もちです",
+        "suggestions": []
+      },
+      {
+        "keywords": [
+          "どんな配信をしていますか？"
+        ],
+        "response": "主にフォートナイトをやっているのだ",
+        "suggestions": []
+      },
+      {
+        "keywords": [
+          "主はどこにいった？"
+        ],
+        "response": "ごはんかお風呂中なのだ",
+        "suggestions": []
+      }
+    ],
+    "momonga_part_params": {
+      "eye": {
+        "x": 0,
+        "y": 0,
+        "scale": 47,
+        "rotate": 0
+      },
+      "mouth": {
+        "x": 0,
+        "y": 0,
+        "scale": 84,
+        "rotate": 0
+      },
+      "body": {
+        "x": 0,
+        "y": 0,
+        "scale": 92,
+        "rotate": 0
+      },
+      "hair": {
+        "x": 0,
+        "y": 0,
+        "scale": 29,
+        "rotate": 0
+      },
+      "headband": {
+        "x": 0,
+        "y": 0,
+        "scale": 170,
+        "rotate": 0
+      },
+      "headless": {
+        "x": 0,
+        "y": 0,
+        "scale": 97,
+        "rotate": 0
+      },
+      "ear_l": {
+        "x": 0,
+        "y": 0,
+        "scale": 192,
+        "rotate": 0
+      },
+      "ear_r": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0
+      },
+      "tail": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0
+      },
+      "leg_c": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0
+      },
+      "leg_l": {
+        "x": -52,
+        "y": 47,
+        "scale": 100,
+        "rotate": 0
+      },
+      "hand_r": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0
+      },
+      "hand_l": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0
+      }
+    },
+    "momonga_part_locks": {
+      "body": false,
+      "eye": false,
+      "mouth": false,
+      "hair": false,
+      "headband": false,
+      "headless": false,
+      "ear_l": false,
+      "ear_r": false,
+      "hand_r": false,
+      "hand_l": false,
+      "leg_c": false,
+      "leg_l": false,
+      "tail": false
+    },
+    "momonga_voice_list": [
+      "sound.wav",
+      "talk_01.wav"
+    ],
+    "momonga_part_transforms": {
+      "eye": {
+        "x": 0,
+        "y": 0,
+        "scale": 108,
+        "rotate": 0
+      },
+      "mouth": {
+        "x": 295,
+        "y": 303,
+        "scale": 98,
+        "rotate": 0
+      },
+      "body": {
+        "x": 39,
+        "y": -48,
+        "scale": 115,
+        "rotate": 0
+      },
+      "hair": {
+        "x": 25,
+        "y": -138,
+        "scale": 53,
+        "rotate": -10
+      },
+      "headband": {
+        "x": -82,
+        "y": 336,
+        "scale": 82,
+        "rotate": 0
+      },
+      "headless": {
+        "x": -38,
+        "y": -4,
+        "scale": 77,
+        "rotate": 0
+      },
+      "ear_l": {
+        "x": -648,
+        "y": 175,
+        "scale": 77,
+        "rotate": 0
+      },
+      "ear_r": {
+        "x": 402,
+        "y": 115,
+        "scale": 100,
+        "rotate": 0
+      },
+      "tail": {
+        "x": 0,
+        "y": 0,
+        "scale": 134,
+        "rotate": 0
+      },
+      "leg_c": {
+        "x": -609,
+        "y": -171,
+        "scale": 100,
+        "rotate": 0
+      },
+      "leg_l": {
+        "x": -126,
+        "y": 645,
+        "scale": 100,
+        "rotate": 0
+      },
+      "hand_r": {
+        "x": 542,
+        "y": 33,
+        "scale": 100,
+        "rotate": 0
+      },
+      "hand_l": {
+        "x": -521,
+        "y": 177,
+        "scale": 100,
+        "rotate": 0
+      }
+    },
+    "momonga_part_configs_jp": {
+      "tail": {
+        "x": -10,
+        "y": 15,
+        "scale": 100
+      },
+      "ear_l": {
+        "x": 174,
+        "y": -226,
+        "scale": 80
+      },
+      "ear_r": {
+        "x": 8,
+        "y": -220,
+        "scale": 80
+      },
+      "body": {
+        "x": 39,
+        "y": -48,
+        "scale": 100
+      },
+      "eye": {
+        "x": 273,
+        "y": 65,
+        "scale": 13
+      },
+      "hair": {
+        "x": 109,
+        "y": -120,
+        "scale": 72
+      },
+      "headband": {
+        "x": 46,
+        "y": -197,
+        "scale": 100
+      },
+      "leg_c": {
+        "x": 110,
+        "y": 136,
+        "scale": 90
+      },
+      "leg_l": {
+        "x": 125,
+        "y": 228,
+        "scale": 43
+      },
+      "hand_r": {
+        "x": 36,
+        "y": 10,
+        "scale": 85
+      },
+      "hand_l": {
+        "x": 177,
+        "y": -9,
+        "scale": 85
+      },
+      "mouth": {
+        "x": 226,
+        "y": 124,
+        "scale": 11
+      }
+    },
+    "momonga_afk_config": {
+      "scale": 31,
+      "animEnabled": true,
+      "parts": {
+        "building": {
+          "x": 0,
+          "y": 0
+        },
+        "tail_2": {
+          "x": 0,
+          "y": 0
+        },
+        "leg_l": {
+          "x": 0,
+          "y": 0
+        },
+        "leg_c": {
+          "x": 0,
+          "y": 0
+        },
+        "body": {
+          "x": 0,
+          "y": 0
+        },
+        "hand_l_2": {
+          "x": 0,
+          "y": 0
+        },
+        "hand_r_2": {
+          "x": 0,
+          "y": 0
+        },
+        "hair_2": {
+          "x": 0,
+          "y": 0
+        },
+        "ear_l_2": {
+          "x": 0,
+          "y": 0
+        },
+        "ear_r_2": {
+          "x": 0,
+          "y": 0
+        },
+        "headband_2": {
+          "x": 0,
+          "y": 0
+        },
+        "eye": {
+          "x": 0,
+          "y": 0
+        },
+        "mouth": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    "momonga_group_pos": {
+      "x": -52,
+      "y": 58,
+      "scale": 100
+    },
+    "momonga_qa_box_visible": 1,
+    "momonga_group_transform": {
+      "x": 0,
+      "y": 0,
+      "scale": 100
+    },
+    "momonga_reaction_part_lock": 1,
+    "momonga_part_lock_state": {
+      "body": false,
+      "eye": false,
+      "mouth": false,
+      "hair": false,
+      "headband": false,
+      "ear_l": false,
+      "ear_r": false,
+      "hand_r": false,
+      "hand_l": false,
+      "leg_c": false,
+      "leg_l": false,
+      "tail": false
+    },
+    "momonga_start_time": 1790258712861,
+    "momonga_parts_data": {
+      "eye": {
+        "x": 403,
+        "y": -42,
+        "scale": 13,
+        "rotate": 0,
+        "locked": false
+      },
+      "mouth": {
+        "x": 84,
+        "y": 157,
+        "scale": 11,
+        "rotate": 0,
+        "locked": false
+      },
+      "body": {
+        "x": 39,
+        "y": -48,
+        "scale": 100,
+        "rotate": 0,
+        "locked": false
+      },
+      "hair": {
+        "x": 300,
+        "y": -120,
+        "scale": 72,
+        "rotate": 0,
+        "locked": false
+      },
+      "headband": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0,
+        "locked": false
+      },
+      "ear_l": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0,
+        "locked": false
+      },
+      "ear_r": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0,
+        "locked": false
+      },
+      "tail": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0,
+        "locked": false
+      },
+      "leg_c": {
+        "x": 0,
+        "y": -1,
+        "scale": 100,
+        "rotate": 0,
+        "locked": false
+      },
+      "leg_l": {
+        "x": -1673,
+        "y": 517,
+        "scale": 53,
+        "rotate": 0,
+        "locked": false
+      },
+      "hand_r": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0,
+        "locked": false
+      },
+      "hand_l": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0,
+        "locked": false
+      }
+    },
+    "momonga_reaction_part_configs_v1": {
+      "eye": {
+        "x": 88,
+        "y": -88,
+        "scale": 45,
+        "rotate": 0
+      },
+      "sweatLeft": {
+        "x": -35,
+        "y": -20,
+        "scale": 182,
+        "rotate": 180
+      },
+      "mark": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0
+      },
+      "lightningTop": {
+        "x": 12,
+        "y": -58,
+        "scale": 119,
+        "rotate": 0
+      },
+      "sweatRight": {
+        "x": 13,
+        "y": -95,
+        "scale": 154,
+        "rotate": 0
+      },
+      "sweatRightBottom": {
+        "x": 37,
+        "y": -226,
+        "scale": 196,
+        "rotate": -27
+      },
+      "lightningLeftBottom": {
+        "x": 67,
+        "y": -207,
+        "scale": 147,
+        "rotate": 0
+      },
+      "lightningRightBottom": {
+        "x": 47,
+        "y": -186,
+        "scale": 146,
+        "rotate": 0
+      }
+    },
+    "momonga_part_lock_states": {
+      "body": false,
+      "eye": false,
+      "mouth": false,
+      "hair": false,
+      "headband": false,
+      "headless": false,
+      "ear_l": false,
+      "ear_r": false,
+      "hand_r": false,
+      "hand_l": false,
+      "leg_c": false,
+      "leg_l": false,
+      "tail": false
+    },
+    "momonga_parts_transform": {
+      "eye": {
+        "x": 553,
+        "y": 54,
+        "scale": 98,
+        "rotate": 0
+      },
+      "mouth": {
+        "x": 226,
+        "y": 124,
+        "scale": 11,
+        "rotate": 0
+      },
+      "body": {
+        "x": 39,
+        "y": -48,
+        "scale": 83,
+        "rotate": 0
+      },
+      "hair": {
+        "x": 110,
+        "y": -120,
+        "scale": 63,
+        "rotate": -42
+      },
+      "headband": {
+        "x": 0,
+        "y": 0,
+        "scale": 78,
+        "rotate": 0
+      },
+      "leg_l": {
+        "x": -370,
+        "y": 199,
+        "scale": 100,
+        "rotate": 0
+      },
+      "hand_r": {
+        "x": -117,
+        "y": 37,
+        "scale": 100,
+        "rotate": 0
+      }
+    },
+    "momonga_theme": "theme-cyber",
+    "momonga_bgm_url": "https://www.youtube.com/watch?v=jfKfPfyJRdk",
+    "momonga_parts_transforms": {
+      "body": {
+        "x": 0,
+        "y": 0,
+        "scale": 127,
+        "rotate": 0
+      },
+      "eye": {
+        "x": 0,
+        "y": 0,
+        "scale": 86,
+        "rotate": 0
+      },
+      "mouth": {
+        "x": 0,
+        "y": 0,
+        "scale": 109,
+        "rotate": 0
+      },
+      "hair": {
+        "x": 0,
+        "y": 0,
+        "scale": 127,
+        "rotate": 0
+      },
+      "headband": {
+        "x": 0,
+        "y": 0,
+        "scale": 93,
+        "rotate": 0
+      },
+      "ear_l": {
+        "x": 0,
+        "y": 0,
+        "scale": 110,
+        "rotate": 0
+      },
+      "ear_r": {
+        "x": 0,
+        "y": 0,
+        "scale": 200,
+        "rotate": 0
+      },
+      "tail": {
+        "x": 0,
+        "y": 0,
+        "scale": 100,
+        "rotate": 0
+      },
+      "leg_c": {
+        "x": 0,
+        "y": 0,
+        "scale": 153,
+        "rotate": 0
+      },
+      "leg_l": {
+        "x": 1112,
+        "y": 0,
+        "scale": 103,
+        "rotate": 66
+      },
+      "hand_r": {
+        "x": 0,
+        "y": 0,
+        "scale": 121,
+        "rotate": 0
+      },
+      "hand_l": {
+        "x": 0,
+        "y": 0,
+        "scale": 137,
+        "rotate": 0
+      },
+      "headless": {
+        "x": 0,
+        "y": 0,
+        "scale": 140,
+        "rotate": 0
+      }
+    },
+    "momonga_voicevox_url": "http://localhost:50021",
+    "momonga_global_part_lock": 1,
+    "momonga_voice_list_v3": [
+      "talk_01.wav",
+      "talk_02.wav"
+    ],
+    "momonga_voicevox_speaker_id": 3,
+    "momonga_custom_qa_editor_visible": 1,
+    "momonga_hand_wave_config": {
+      "enabled": true,
+      "offset": 180,
+      "angle": 25,
+      "interval": 5,
+      "duration": 3,
+      "speed": 0.8
+    },
+    "momonga_locked_parts": {
+      "body": true,
+      "eye": true,
+      "hair": true,
+      "mouth": true,
+      "headband": true,
+      "ear_r": true,
+      "hand_r": true,
+      "ear_l": true,
+      "leg_c": true,
+      "hand_l": true,
+      "leg_l": true,
+      "tail": true
+    },
+    "momonga_parts_locks": {
+      "body": false,
+      "eye": false,
+      "mouth": false,
+      "hair": false,
+      "headband": false,
+      "ear_l": false,
+      "ear_r": false,
+      "tail": false,
+      "leg_c": false,
+      "leg_l": false,
+      "hand_r": false,
+      "hand_l": false,
+      "headless": false
+    }
+  }
+}

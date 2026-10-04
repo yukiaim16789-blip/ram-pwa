@@ -1,0 +1,53 @@
+# 素材一覧
+
+## images
+- 01_.png
+- 01_まぶた.png
+- 02_眼球.png
+- 04_.png
+- 05_.png
+- 06_.png
+- 08_.png
+- 09_.png
+- 10_.png
+- 14_.png
+- Effoct.png
+- Fine-grained.png
+- Half-open eyes.png
+- Iron ball.png
+- Jackpot-boosting symbol.png
+- Probability Variation.png
+- background.png
+- ball.png
+- body_2 - コピー.png
+- body_no_eye.png
+- building.png
+- chain.png
+- character_2.png
+- ear_l_2.png
+- ear_r_2.png
+- eye_close.png
+- eye_open.png
+- hair_2.png
+- hand_l_2.png
+- hand_r_2.png
+- headband_2.png
+- leg_c.png
+- leg_l.png
+- mouth_close.png
+- mouth_open.png
+- nc175512.jpg
+- ram.png
+- ribbon_2.png
+- stand-by.png
+- tail_2.png
+- welcome home.png
+- 素材.png
+- 訂.jpg
+
+## audio
+- bgm.wav
+- notification.wav
+- talk_01.wav
+- talk_02.wav
+- talk_03.wav
